@@ -1,0 +1,27 @@
+#!/bin/bash
+ROOTFS="/"
+LIBRARY=$ROOTFS"usr/local/mpkglib"
+if [[ -z $1 ]]; then
+	$LIBRARY/binary/mpkgconfig-manual
+	exit
+fi
+if [[ -z $1 ]]; then
+	if [ "$EUID" -ne 0 ]; then 
+		echo "Not enough permission!"
+	 	exit
+	fi
+	if [[ $1 == "-l" ]]; then
+		ls $LIBRARY/preferences/
+		exit
+	fi
+	if [[ -z $2 ]]; then
+		echo "Missing parameter."
+	else
+		if [[ ! -e $LIBRARY/$1 ]]; then
+			echo "No such configuration."
+		else
+			echo $2>$LIBRARY/$1
+			echo "Option set."
+		fi
+	fi
+fi

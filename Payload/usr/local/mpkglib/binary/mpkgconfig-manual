@@ -1,0 +1,6 @@
+#!/bin/bash
+echo "Macintosh Packager - Configurator"
+echo "Usage: mpkg-config [option] [value]"
+echo ""
+echo "ex. mpkg online-flag http://repo.zeone.kro.kr/repo/online"
+exit

@@ -1,0 +1,4 @@
+#!/bin/bash
+echo "Macintosh Packager - Package Maker"
+echo "Usage: mpkg-make -a [architecture] [directory]"
+exit

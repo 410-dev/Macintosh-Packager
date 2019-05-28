@@ -1,0 +1,118 @@
+#!/bin/bash
+args=$1
+pkg=$2
+ROOTFS="/"
+LIBRARY=$ROOTFS"usr/local/mpkglib"
+SEDLIB="\\/usr\\/local\\/mpkglib\\/temp\\/Payload\\/"
+if [[ -z $args ]]; then
+	$LIBRARY/binary/mpkg-manual
+	exit
+fi
+echo "Running Macintosh Packager-live..."
+echo "Last Update: May 5, 2019 KST 15:38:20"
+echo "BASE: MPKG 1.2"
+echo "MPKG 4.3 SEMI-COMPATIBILITY LAYER INCLUDED"
+if [ "$EUID" -ne 0 ]; then 
+	echo "Not enough permission!"
+ 	exit
+fi
+sudo mkdir $LIBRARY
+sudo mkdir $LIBRARY/temp
+if [[ -z $(echo $pkg|grep ".mpack") ]]; then
+	echo "E:36"
+	echo "It is not a mpkg package!"
+	exit
+else
+	echo "Locking mpkg..."
+	sudo touch $LIBRARY/lock
+	echo "Unpacking..."
+	if [ ! -e $LIBRARY/temp ]; then
+		sudo mkdir $LIBRARY/temp
+	else
+		sudo rm -r $LIBRARY/temp
+		sudo mkdir $LIBRARY/temp
+	fi
+	cp $pkg $LIBRARY/temp/
+	if [ ! -e $LIBRARY/temp/*.mpack ]; then
+		echo "E:31"
+		echo "Failed to unpack."
+		sudo rm -r $LIBRARY/temp
+		sudo rm $LIBRARY/lock
+		exit
+	fi
+	mv $LIBRARY/temp/*.mpack $LIBRARY/temp/package.zip
+	unzip -qq $LIBRARY/temp/package.zip -d $LIBRARY/temp
+	if [ ! -e $LIBRARY/temp/Info.zip ]; then
+		echo "E:22"
+		echo "Package Corruption (No Control Cluster). Unable to continue."
+		sudo rm -r $LIBRARY/temp
+		sudo rm $LIBRARY/lock
+		exit
+	fi
+	if [ ! -e $LIBRARY/temp/Payload.zip ]; then
+		echo "E:23"
+		echo "Package Corruption (No Payload). Unable to continue."
+		sudo rm -r $LIBRARY/temp
+		sudo rm $LIBRARY/lock
+		exit
+	fi
+	mkdir $LIBRARY/temp/Info
+	unzip -qq $LIBRARY/temp/Info.zip -d $LIBRARY/temp/Info
+fi
+mkdir $LIBRARY/temp/Payload
+unzip -qq $LIBRARY/temp/Payload.zip -d $LIBRARY/temp/Payload
+if [[ ! -e $LIBRARY/temp/Info/pkgname ]]; then
+	echo "E:37"
+	echo "Package Corruption (No PN control). Unable to continue."
+	sudo rm -r $LIBRARY/temp
+	sudo rm $LIBRARY/lock
+	exit
+elif [[ ! -e $LIBRARY/temp/Info/version ]]; then
+	echo "E:38"
+	echo "Package Corruption (No Version control). Unable to continue."
+	sudo rm -r $LIBRARY/temp
+	sudo rm $LIBRARY/lock
+	exit
+elif [[ ! -e $LIBRARY/temp/Info/pkgid ]]; then
+	echo "E:38"
+	echo "Package Corruption (No PI control). Unable to continue."
+	sudo rm -r $LIBRARY/temp
+	sudo rm $LIBRARY/lock
+	exit
+elif [[ ! -e $LIBRARY/temp/Payload ]]; then
+	echo "E:39"
+	echo "Package Corruption (No payload). Unable to continue."
+	sudo rm -r $LIBRARY/temp
+	sudo rm $LIBRARY/lock
+	exit
+fi
+echo "Installing "$(<$LIBRARY/temp/Info/pkgname)"..."
+echo "Selecting "$(<$LIBRARY/temp/Info/pkgid) $(<$LIBRARY/temp/Info/version)" to install..."
+if [[ -e $LIBRARY/temp/Info/preinst.sh ]]; then
+	echo "Running preinst..."
+	sudo $LIBRARY/temp/Info/preinst.sh
+fi
+echo "Removing Finder Elements..."
+sudo find $LIBRARY/temp -name ".DS_Store" -exec rm {} \;
+echo "Installing..."
+sudo cp -r $LIBRARY/temp/Payload/* $ROOTFS
+if [[ -e $LIBRARY/temp/Info/postinst.sh ]]; then
+	echo "Running postinst..." 
+	sudo $LIBRARY/temp/Info/postinst.sh
+fi
+echo "Installing controls..."
+if [[ ! -e $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid) ]]; then
+	sudo mkdir $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)
+fi
+sudo cp $LIBRARY/temp/Info/* $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/
+echo "Writing connected files to database..."
+sudo find $LIBRARY/temp/Payload -not -type d | grep $LIBRARY/temp/Payload > $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
+sudo sed -i s/$SEDLIB/\\// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
+sudo sed -i s/\\/usr\\/local\\/mpkglib\\/temp\\/Payload// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
+echo "Analysis written to database."
+echo "Finished installing:" $(<$LIBRARY/temp/Info/pkgname) $(<$LIBRARY/temp/Info/version)
+echo "Cleaning up..."
+sudo rm -r $LIBRARY/temp
+sudo rm $LIBRARY/lock
+exit
+

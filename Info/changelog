@@ -1,4 +1,3 @@
-Version 5.2 Duo
-- Able to set target directory
-- No more signature checking
-- Better manual
+Version 5.21 Duo
+- Minor Bug Fixes
+- Able to remove controls only

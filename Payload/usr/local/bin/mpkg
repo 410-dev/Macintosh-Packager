@@ -276,7 +276,11 @@ if [[ $args == "-i" ]]; then
 		echo "Userpayload detected...!"
 		if [[ -e $LIBRARY/usersupport/localuser ]]; then
 			echo "User directory: "$(<$LIBRARY/usersupport/localuser)
-			sudo cp -r $LIBRARY/temp/userPayload/* $(<$LIBRARY/usersupport/localuser)
+			if [[ $userpayloadtarget == "nil" ]]; then
+				sudo cp -r $LIBRARY/temp/userPayload/* $(<$LIBRARY/usersupport/localuser)
+			else
+				sudo cp -r $LIBRARY/temp/userPayload/* $userpayloadtarget
+			fi
 		else
 			echo "This package requires \"libusersupport\" to copy user library."
 			echo "RootFS Payload will be copied, but userpayload will NOT be copied, since there is no supporting layer."
@@ -449,44 +453,52 @@ if [[ $args == "-r" ]]; then
 		echo "Removal is blocked."
 		sudo rm $LIBRARY/lock
 		exit
-	elif [[ ! -e $LIBRARY/db/"$pkg"/files ]]; then
-		echo "E:25"
-		echo "No file connection data!"
-		sudo rm $LIBRARY/lock
-		exit
-	else
-		echo "Uninstalling..."
-		if [[ -e $LIBRARY/db/"$pkg"/prerm.sh ]]; then
-			echo "Running prerm..."
-			$LIBRARY/db/"$pkg"/prerm.sh
-		fi
-		echo "Removing data..."
-		declare -i loopset=$(wc -l < $LIBRARY/db/"$pkg"/files)
-		declare -i loopProgress=0
-		while [[ $loopset -gt $loopProgress ]]; do
-			loopProgress=$(( $loopProgress + 1 ))
-			sudo rm -rf $(awk -v line=$loopProgress 'NR==line' $LIBRARY/db/"$pkg"/files)
-		done
-		if [[ -e $LIBRARY/db/"$pkg"/userfiles ]]; then
-			echo "Removing user data..."
-			declare -i loopset=$(wc -l < $LIBRARY/db/"$pkg"/userfiles)
+	fi
+	if [[ $3 -ne "--ctr-only" ]]; then
+		if [[ ! -e $LIBRARY/db/"$pkg"/files ]]; then
+			echo "E:25"
+			echo "No file connection data!"
+			sudo rm $LIBRARY/lock
+			exit
+		else
+			echo "Uninstalling..."
+			if [[ -e $LIBRARY/db/"$pkg"/prerm.sh ]]; then
+				echo "Running prerm..."
+				$LIBRARY/db/"$pkg"/prerm.sh
+			fi
+			echo "Removing data..."
+			declare -i loopset=$(wc -l < $LIBRARY/db/"$pkg"/files)
 			declare -i loopProgress=0
 			while [[ $loopset -gt $loopProgress ]]; do
 				loopProgress=$(( $loopProgress + 1 ))
-				sudo rm -rf "$(<$LIBRARY/usersupport/localuser)"/"$(awk -v line=$loopProgress 'NR==line' $LIBRARY/db/"$pkg"/userfiles)"
+				sudo rm -rf $(awk -v line=$loopProgress 'NR==line' $LIBRARY/db/"$pkg"/files)
 			done
-		fi
-		if [[ -e $LIBRARY/db/"$pkg"/postrm.sh ]]; then
-			echo "Running postrm..."
-			$LIBRARY/db/"$pkg"/postrm.sh
-		fi
-		if [[ -e $LIBRARY/db/"$pkg"/depends ]]; then
-			if [[ ! -z $(cat $LIBRARY/db/"$pkg"/depends | grep "com.zeone.osxsubstrate") ]]; then
-				echo "Reloading Substrate database..."
-				/usr/local/substratelib/substrate --reload
-				echo "Finished."
+			if [[ -e $LIBRARY/db/"$pkg"/userfiles ]]; then
+				echo "Removing user data..."
+				declare -i loopset=$(wc -l < $LIBRARY/db/"$pkg"/userfiles)
+				declare -i loopProgress=0
+				while [[ $loopset -gt $loopProgress ]]; do
+					loopProgress=$(( $loopProgress + 1 ))
+					sudo rm -rf "$(<$LIBRARY/usersupport/localuser)"/"$(awk -v line=$loopProgress 'NR==line' $LIBRARY/db/"$pkg"/userfiles)"
+				done
 			fi
+			if [[ -e $LIBRARY/db/"$pkg"/postrm.sh ]]; then
+				echo "Running postrm..."
+				$LIBRARY/db/"$pkg"/postrm.sh
+			fi
+			if [[ -e $LIBRARY/db/"$pkg"/depends ]]; then
+				if [[ ! -z $(cat $LIBRARY/db/"$pkg"/depends | grep "com.zeone.osxsubstrate") ]]; then
+					echo "Reloading Substrate database..."
+					/usr/local/substratelib/substrate --reload
+					echo "Finished."
+				fi
+			fi
+			echo "Removing control..."
+			sudo rm -r $LIBRARY/db/"$pkg"
+			sudo rm $LIBRARY/lock
+			exit
 		fi
+	else
 		echo "Removing control..."
 		sudo rm -r $LIBRARY/db/"$pkg"
 		sudo rm $LIBRARY/lock

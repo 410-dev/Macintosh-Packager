@@ -1,2 +1,4 @@
-Version 5.1 Duo
-- Full linux support
+Version 5.2 Duo
+- Able to set target directory
+- No more signature checking
+- Better manual

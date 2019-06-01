@@ -2,8 +2,40 @@
 args=$1
 pkg=$2
 ROOTFS="/"
-LIBRARY=$ROOTFS"usr/local/mpkglib"
+LIBRARY="/usr/local/mpkglib"
 SEDLIB="\\/usr\\/local\\/mpkglib\\/temp\\/Payload\\/"
+target="/"
+userpayloadtarget="nil"
+if [[ $4 == "--target" ]]; then
+	if [[ ! -z $5 ]]; then
+		echo "Missing target path."
+		exit
+	elif [[ ! -e $5 ]]; then
+		echo "Target does not exists."
+		exit
+	elif [[ -z $(file $5 | grep ": directory") ]]; then
+		echo "Target is not a directory."
+		exit
+	else
+		target=$5
+		echo "Warning: Modified installation destination target for system. This will NOT support removal."
+	fi
+fi
+if [[ $6 == "--usertarget" ]]; then
+	if [[ ! -z $7 ]]; then
+		echo "Missing target path."
+		exit
+	elif [[ ! -e $7 ]]; then
+		echo "Target does not exists."
+		exit
+	elif [[ -z $(file $7 | grep ": directory") ]]; then
+		echo "Target is not a directory."
+		exit
+	else
+		userpayloadtarget=$7
+		echo "Warning: Modified installation destination target for user. This will NOT support removal."
+	fi
+fi
 function dependencyCheck() {
 	echo "Checking for dependencies..."
 	if [[ -e $LIBRARY/temp/Info/depends ]]; then
@@ -80,7 +112,7 @@ if [[ $args == "-i" ]]; then
 	if [[ -z $(echo "$pkg"|grep ".mpack") ]]; then
 		if [[ -z $(echo "$pkg"|grep ".mp") ]]; then
 			if [[ -e $LIBRARY/binary/LegacyPackageCompatibilityLayer ]]; then
-				sudo LegacyPackageCompatibilityLayer -i $pkg $3 $4
+				sudo LegacyPackageCompatibilityLayer -i $pkg $3
 				exit
 			else
 				echo "This package requires mpkg <= 3.1 (Relatively unstable) or LegacyPackageCompatibilityLayer installed."
@@ -235,7 +267,11 @@ if [[ $args == "-i" ]]; then
 	echo "Removing Finder Elements..."
 	sudo find $LIBRARY/temp -name ".DS_Store" -exec rm {} \;
 	echo "Installing..."
-	sudo cp -r $LIBRARY/temp/Payload/* $ROOTFS
+	if [[ $target == "/" ]]; then
+		sudo cp -r $LIBRARY/temp/Payload/* $ROOTFS
+	else
+		sudo cp -r $LIBRARY/temp/Payload/* $target
+	fi
 	if [[ -e $LIBRARY/temp/userPayload ]]; then
 		echo "Userpayload detected...!"
 		if [[ -e $LIBRARY/usersupport/localuser ]]; then
@@ -258,24 +294,46 @@ if [[ $args == "-i" ]]; then
 		sudo mkdir $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)
 	fi
 	sudo cp $LIBRARY/temp/Info/* $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/
-	echo "Writing connected files to database..."
-	sudo find $LIBRARY/temp/Payload -not -type d | grep $LIBRARY/temp/Payload > $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
-	sudo sed -i s/$SEDLIB/\\// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
-	# sudo sed -i '' s/$SEDLIB/\\// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
-	sudo sed -i s/\\/usr\\/local\\/mpkglib\\/temp\\/Payload// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
+	if [[ $target == "/" ]]; then
+		echo "Writing connected files to database..."
+		sudo find $LIBRARY/temp/Payload -not -type d | grep $LIBRARY/temp/Payload > $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
+		sudo sed -i s/$SEDLIB/\\// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
+		sudo sed -i s/\\/usr\\/local\\/mpkglib\\/temp\\/Payload// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
+	else
+		echo "Skipped index writing."
+		touch $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
+	fi
 	if [[ -e $LIBRARY/temp/userPayload ]]; then
-		if [[ ! -e $LIBRARY/temp/userpayloadnotcopied ]]; then
-			sudo find $LIBRARY/temp/userPayload -not -type d | grep $LIBRARY/temp/userPayload > $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
-			sudo sed -i s/$SEDLIB/\\// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
-			sudo sed -i s/\\/usr\\/local\\/mpkglib\\/temp\\/userPayload// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
+		if [[ $userpayloadtarget == "nil" ]]; then
+			if [[ ! -e $LIBRARY/temp/userpayloadnotcopied ]]; then
+				sudo find $LIBRARY/temp/userPayload -not -type d | grep $LIBRARY/temp/userPayload > $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
+				sudo sed -i s/$SEDLIB/\\// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
+				sudo sed -i s/\\/usr\\/local\\/mpkglib\\/temp\\/userPayload// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
+			else
+				echo "Userpayload is not copied, so will not be added to database."
+				sudo rm $LIBRARY/temp/userpayloadnotcopied
+			fi
 		else
-			echo "Userpayload is not copied, so will not be added to database."
-			sudo rm $LIBRARY/temp/userpayloadnotcopied
+			echo "Skipped user index writing."
+			touch $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
 		fi
 	fi
 	echo "Analysis written to database."
 	if [[ -e $LIBRARY/convert_failed ]]; then
 		echo "WARNING! DEPRICATED DATABASE CONVERSION FAILED."
+	fi
+	if [[ $4 == "--target" ]]; then
+		echo "Temporarily unlocking mpkg for subprocess..."
+		sudo rm $LIBRARY/lock
+		sudo mpkg -b $(<$LIBRARY/temp/Info/pkgid) -y
+		echo "Relocking..."
+		sudo touch $LIBRARY/lock
+	elif [[ $6 == "--usertarget" ]]; then
+		echo "Temporarily unlocking mpkg for subprocess..."
+		sudo rm $LIBRARY/lock
+		sudo mpkg -b $(<$LIBRARY/temp/Info/pkgid) -y
+		echo "Relocking..."
+		sudo touch $LIBRARY/lock
 	fi
 	echo "Finished installing:" $(<$LIBRARY/temp/Info/pkgname) $(<$LIBRARY/temp/Info/version)
 	if [[ -e $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/depends ]]; then
@@ -435,7 +493,7 @@ if [[ $args == "-h" ]]; then
 	$LIBRARY/binary/mpkg-manual
 	exit
 fi
-if [[ $args == "--block-removal" ]]; then
+if [[ $args == "-b" ]]; then
 	if [[ -z $2 ]]; then
 		echo "Missing argument: package id"
 		exit
@@ -443,13 +501,7 @@ if [[ $args == "--block-removal" ]]; then
 		echo "Package is not installed."
 		exit
 	else
-		echo "If you block removal:"
-		echo "Unable to reinstall the package"
-		echo "Unable to upgrade the package"
-		echo "Unable to remove the package"
-		echo "This action is irrevokable. Are you sure you want to continue? y/n (MUST BE LOWER CASE)"
-		read flag
-		if [[ $flag == "y" ]]; then
+		if [[ $3 == "-y" ]]; then
 			echo "Locking mpkg..."
 			touch $LIBRARY/lock
 			echo "Removing file connection from db..."
@@ -462,8 +514,28 @@ if [[ $args == "--block-removal" ]]; then
 			echo "Done."
 			sudo rm $LIBRARY/lock
 		else
-			echo "Aborted."
-			exit
+			echo "If you block removal:"
+			echo "Unable to reinstall the package"
+			echo "Unable to upgrade the package"
+			echo "Unable to remove the package"
+			echo "This action is irrevokable. Are you sure you want to continue? y/n (MUST BE LOWER CASE)"
+			read flag
+			if [[ $flag == "y" ]]; then
+				echo "Locking mpkg..."
+				touch $LIBRARY/lock
+				echo "Removing file connection from db..."
+				sudo rm $LIBRARY/db/$2/files
+				if [[ -e $LIBRARY/db/$2/userfiles ]]; then
+					sudo rm $LIBRARY/db/$2/userfiles
+				fi
+				echo "Adding unremovable flag..."
+				sudo touch $LIBRARY/db/$2/unremovable
+				echo "Done."
+				sudo rm $LIBRARY/lock
+			else
+				echo "Aborted."
+				exit
+			fi
 		fi
 	fi
 fi

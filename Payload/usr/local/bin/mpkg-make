@@ -30,7 +30,6 @@ if [[ ! -z $1 ]]; then
 			mv userPayload.zip ../userPayload.zip
 			cd ..
 		fi
-		MD5LOG=$(md5 Payload.zip)
 		if [[ ! -e $3/Info/pkgid ]]; then
 			rm $3/Payload.zip
 			echo "Package ID Missing!"
@@ -64,17 +63,6 @@ if [[ ! -z $1 ]]; then
 		else
 			echo "Package Version: "$(<$3/Info/version)
 		fi
-		echo $MD5LOG
-		echo "Please copy the MD5 Hash signature and paste here."
-		read hash
-		if [[ -z $hash ]]; then
-			rm $3/Payload.zip
-			echo "Hash cannot be empty!"
-			exit
-		else
-			echo $hash>$3/Info/pkgsign
-			echo "File locally signed."
-		fi
 		echo "Packing Information Cluster..."
 		cd $3/Info
 		zip -rq Info.zip . -x ".*" -x "__MACOSX"
@@ -90,13 +78,13 @@ if [[ ! -z $1 ]]; then
 		NAME=$(<$3/Info/pkgid)
 		NAME="$NAME"_$(<$3/Info/version)
 		if [[ $2 == "Darwin" ]]; then
-			NAME="$NAME"_darwin64-signed
+			NAME="$NAME"_darwin64
 		elif [[ $2 == "Linux" ]]; then
-			NAME="$NAME"_linux-signed
+			NAME="$NAME"_linux
 		elif [[ $2 == "Duo" ]]; then
-			NAME="$NAME"_duo-signed
+			NAME="$NAME"_duo
 		else
-			NAME="$NAME"_noarch-signed
+			NAME="$NAME"_noarch
 		fi
 		zip -rq $NAME.zip . -x ".*" -x "__MACOSX"
 		mv "$NAME.zip" ../"$NAME.zip"

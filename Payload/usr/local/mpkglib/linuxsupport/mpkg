@@ -22,7 +22,7 @@ if [[ $4 == "--target" ]]; then
 	fi
 fi
 if [[ $6 == "--usertarget" ]]; then
-	if [[ ! -z $7 ]]; then
+	if [[ -z $7 ]]; then
 		echo "Missing target path."
 		exit
 	elif [[ ! -e $7 ]]; then

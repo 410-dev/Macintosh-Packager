@@ -1,12 +1,12 @@
 #!/bin/bash
-ADDRESS="https://github.com/HTTP410GONE/MacintoshPackager/releases/download/5.1duo/mpkg_5.1duo_duo-signed.mpack"
+ADDRESS="https://github.com/HTTP410GONE/MacintoshPackager/releases/download/5.2duo/mpkg_5.2duo_duo.mpack"
 MPKGLIVE="https://raw.githubusercontent.com/HTTP410GONE/MacintoshPackager/master/mpkg-linux-live"
 NETINSTALL="https://github.com/HTTP410GONE/MacintoshPackager/releases/download/Net1.1/net_1.1_darwin64-signed.mpack"
 echo "NETINSTALL-LIVE FOR LINUX"
-echo "VERSION: 1.6"
+echo "VERSION: 1.61"
 echo "LAST UPDATE: MAY.29.2019 KST 00:10:20"
 echo "This will install: "
-echo "mpkg 5.1 Duo"
+echo "mpkg 5.2 Duo"
 echo "net 1.1"
 echo "Checking architecture..."
 if [[ -z $(uname -a | grep "Linux") ]]; then

@@ -7,7 +7,7 @@ SEDLIB="\\/usr\\/local\\/mpkglib\\/temp\\/Payload\\/"
 target="/"
 userpayloadtarget="nil"
 if [[ $4 == "--target" ]]; then
-	if [[ ! -z $5 ]]; then
+	if [[ -z $5 ]]; then
 		echo "Missing target path."
 		exit
 	elif [[ ! -e $5 ]]; then

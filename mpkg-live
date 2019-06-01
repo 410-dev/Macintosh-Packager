@@ -59,47 +59,8 @@ else
 	mkdir $LIBRARY/temp/Info
 	unzip -qq $LIBRARY/temp/Info.zip -d $LIBRARY/temp/Info
 fi
-if [[ ! -e $LIBRARY/temp/Info/pkgsign ]]; then
-	if [[ $4 == "--nosignaturecheck" ]]; then
-		echo "Skipped signature check."
-		echo "!!!!INSTALLING UNSIGNED PACKAGE MAY BE DANGEROUS!!!!"
-	else
-		echo "E:20"
-		echo "No signature file."
-		sudo rm -r $LIBRARY/temp
-		sudo rm $LIBRARY/lock
-		exit
-	fi
-else
-	if [[ -z $(<$LIBRARY/temp/Info/pkgsign) ]]; then
-		if [[ $4 == "--nosignaturecheck" ]]; then
-			echo "Skipped signature check."
-			echo "!!!!INSTALLING UNSIGNED PACKAGE MAY BE DANGEROUS!!!!"
-		else
-			echo "E:27"
-			echo "Empty signature data. Unable to continue."
-			sudo rm -r $LIBRARY/temp
-			sudo rm $LIBRARY/lock
-			exit
-		fi
-	else
-		signdat=$(<$LIBRARY/temp/Info/pkgsign)
-		if [[ -z $(md5 $LIBRARY/temp/Payload.zip | grep $signdat) ]]; then
-			if [[ $4 == "--nosignaturecheck" ]]; then
-				echo "Skipped signature check."
-				echo "!!!!INSTALLING UNSIGNED PACKAGE MAY BE DANGEROUS!!!!"
-			else
-				echo "E:21"
-				echo "Invalid signature data. Unable to continue."
-				sudo rm -r $LIBRARY/temp
-				sudo rm $LIBRARY/lock
-				exit
-			fi
-		fi
-	fi
-	mkdir $LIBRARY/temp/Payload
-	unzip -qq $LIBRARY/temp/Payload.zip -d $LIBRARY/temp/Payload
-fi
+mkdir $LIBRARY/temp/Payload
+unzip -qq $LIBRARY/temp/Payload.zip -d $LIBRARY/temp/Payload
 if [[ ! -e $LIBRARY/temp/Info/pkgname ]]; then
 	echo "E:37"
 	echo "Package Corruption (No PN control). Unable to continue."

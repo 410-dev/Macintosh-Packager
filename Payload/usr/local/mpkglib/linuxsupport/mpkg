@@ -326,18 +326,20 @@ if [[ $args == "-i" ]]; then
 	if [[ -e $LIBRARY/convert_failed ]]; then
 		echo "WARNING! DEPRICATED DATABASE CONVERSION FAILED."
 	fi
-	if [[ $4 == "--target" ]]; then
+	if [[ $3 == "--target" ]]; then
 		echo "Temporarily unlocking mpkg for subprocess..."
 		sudo rm $LIBRARY/lock
 		sudo mpkg -b $(<$LIBRARY/temp/Info/pkgid) -y
 		echo "Relocking..."
 		sudo touch $LIBRARY/lock
-	elif [[ $6 == "--usertarget" ]]; then
+		sudo rm $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/unremovable
+	elif [[ $4 == "--usertarget" ]]; then
 		echo "Temporarily unlocking mpkg for subprocess..."
 		sudo rm $LIBRARY/lock
 		sudo mpkg -b $(<$LIBRARY/temp/Info/pkgid) -y
 		echo "Relocking..."
 		sudo touch $LIBRARY/lock
+		sudo rm $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/unremovable
 	fi
 	echo "Finished installing:" $(<$LIBRARY/temp/Info/pkgname) $(<$LIBRARY/temp/Info/version)
 	if [[ -e $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/depends ]]; then

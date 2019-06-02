@@ -6,33 +6,33 @@ LIBRARY="/usr/local/mpkglib"
 SEDLIB="\\/usr\\/local\\/mpkglib\\/temp\\/Payload\\/"
 target="/"
 userpayloadtarget="nil"
-if [[ $4 == "--target" ]]; then
-	if [[ -z $5 ]]; then
+if [[ $3 == "--target" ]]; then
+	if [[ -z $4 ]]; then
 		echo "Missing target path."
 		exit
-	elif [[ ! -e $5 ]]; then
+	elif [[ ! -e $4 ]]; then
 		echo "Target does not exists."
 		exit
-	elif [[ -z $(file $5 | grep ": directory") ]]; then
+	elif [[ -z $(file $4 | grep ": directory") ]]; then
 		echo "Target is not a directory."
 		exit
 	else
-		target=$5
+		target=$4
 		echo "Warning: Modified installation destination target for system. This will NOT support removal."
 	fi
 fi
-if [[ $6 == "--usertarget" ]]; then
-	if [[ -z $7 ]]; then
+if [[ $5 == "--usertarget" ]]; then
+	if [[ -z $6 ]]; then
 		echo "Missing target path."
 		exit
-	elif [[ ! -e $7 ]]; then
+	elif [[ ! -e $6 ]]; then
 		echo "Target does not exists."
 		exit
-	elif [[ -z $(file $7 | grep ": directory") ]]; then
+	elif [[ -z $(file $6 | grep ": directory") ]]; then
 		echo "Target is not a directory."
 		exit
 	else
-		userpayloadtarget=$7
+		userpayloadtarget=$6
 		echo "Warning: Modified installation destination target for user. This will NOT support removal."
 	fi
 fi
@@ -330,18 +330,20 @@ if [[ $args == "-i" ]]; then
 	if [[ -e $LIBRARY/convert_failed ]]; then
 		echo "WARNING! DEPRICATED DATABASE CONVERSION FAILED."
 	fi
-	if [[ $4 == "--target" ]]; then
+	if [[ $3 == "--target" ]]; then
 		echo "Temporarily unlocking mpkg for subprocess..."
 		sudo rm $LIBRARY/lock
 		sudo mpkg -b $(<$LIBRARY/temp/Info/pkgid) -y
 		echo "Relocking..."
 		sudo touch $LIBRARY/lock
-	elif [[ $6 == "--usertarget" ]]; then
+		sudo rm $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/unremovable
+	elif [[ $4 == "--usertarget" ]]; then
 		echo "Temporarily unlocking mpkg for subprocess..."
 		sudo rm $LIBRARY/lock
 		sudo mpkg -b $(<$LIBRARY/temp/Info/pkgid) -y
 		echo "Relocking..."
 		sudo touch $LIBRARY/lock
+		sudo rm $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/unremovable
 	fi
 	echo "Finished installing:" $(<$LIBRARY/temp/Info/pkgname) $(<$LIBRARY/temp/Info/version)
 	if [[ -e $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/depends ]]; then

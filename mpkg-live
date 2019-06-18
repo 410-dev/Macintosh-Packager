@@ -17,6 +17,7 @@ if [ "$EUID" -ne 0 ]; then
  	exit
 fi
 sudo mkdir $LIBRARY
+sudo mkdir $LIBRARY/db
 sudo mkdir $LIBRARY/temp
 if [[ -z $(echo $pkg|grep ".mpack") ]]; then
 	echo "E:36"

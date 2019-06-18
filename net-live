@@ -3,7 +3,7 @@ ADDRESS="https://github.com/HTTP410GONE/MacintoshPackager/releases/download/5.22
 MPKGLIVE="https://raw.githubusercontent.com/HTTP410GONE/MacintoshPackager/master/mpkg-live"
 NETINSTALL="https://github.com/HTTP410GONE/MacintoshPackager/releases/download/Net1.1/net_1.1_darwin64-signed.mpack"
 echo "NETINSTALL-LIVE"
-echo "VERSION: 1.63"
+echo "VERSION: 1.64"
 echo "LAST UPDATE: JUNE.18.2019 KST 16:27:10"
 echo "This will install: "
 echo "mpkg 5.22 Duo"
@@ -18,6 +18,8 @@ sudo curl -sL $ADDRESS > ~/mpkg.mpack
 sudo curl -sL $MPKGLIVE > ~/mpkglive
 sudo curl -sL $NETINSTALL > ~/net.mpack
 sudo chmod +x ~/mpkglive
+sudo mkdir /usr/local/mpkglib
+sudo mkdir /usr/local/mpkglib/db
 sudo ~/mpkglive -i ~/mpkg.mpack --override
 sudo ~/mpkglive -i ~/net.mpack --override
 sudo rm ~/mpkglive

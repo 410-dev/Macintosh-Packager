@@ -1,5 +1,5 @@
 #!/bin/bash
-ADDRESS="https://github.com/HTTP410GONE/MacintoshPackager/releases/download/5.22duo/mpkg_5.22duo_duo-signed.mpack"
+ADDRESS="https://github.com/HTTP410GONE/MacintoshPackager/releases/download/5.22duo/mpkg_5.22duo_duo.mpack"
 MPKGLIVE="https://raw.githubusercontent.com/HTTP410GONE/MacintoshPackager/master/mpkg-live"
 NETINSTALL="https://github.com/HTTP410GONE/MacintoshPackager/releases/download/Net1.1/net_1.1_darwin64-signed.mpack"
 echo "NETINSTALL-LIVE"

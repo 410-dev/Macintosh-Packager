@@ -1,3 +1,2 @@
-Version 5.22 Duo
-- Disabled using override option for target installation
-- Target installation control unremovable bug fix
+Version 5.3 Duo
+- New command: mpkgcreate

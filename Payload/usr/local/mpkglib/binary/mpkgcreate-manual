@@ -1,0 +1,6 @@
+#!/bin/bash
+echo "Macintosh Packager"
+echo "Usage: mpkgcreate [path] [name]"
+echo ""
+echo "Example:"
+echo "mpkgcreate ~/Documents newmpkgproject"

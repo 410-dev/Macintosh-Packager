@@ -7,8 +7,9 @@ Paste these commands to Terminal.
 FOR macOS: 
 ```curl -Ls https://raw.githubusercontent.com/HTTP410GONE/MacintoshPackager/master/net-live -o ~/netlive; chmod +x ~/netlive; sudo ~/netlive```
 
-FOR Linux: 
-```curl -Ls https://raw.githubusercontent.com/HTTP410GONE/MacintoshPackager/master/net-linux-live -o ~/netlive; chmod +x ~/netlive; sudo ~/netlive```
+~~FOR Linux: ~~
+~~```curl -Ls https://raw.githubusercontent.com/HTTP410GONE/MacintoshPackager/master/net-linux-live -o ~/netlive; chmod +x ~/netlive; sudo ~/netlive```~~
+Linux is no longer supported. Final release of Linux Support is 5.3 Duo.
 
 
 ## MPACK repo

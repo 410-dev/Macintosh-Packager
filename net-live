@@ -7,10 +7,10 @@ GRN='\033[0;32m'
 BLU='\033[0;34m'
 NC='\033[0m'
 echo "NETINSTALL-LIVE"
-echo "VERSION: 1.7"
-echo "LAST UPDATE: JUNE.29.2019 KST 14:41:51"
+echo "VERSION: 1.8"
+echo "LAST UPDATE: AUG.18.2019 KST 18:40:33"
 echo "This will install: "
-echo "mpkg 5.3 Duo"
+echo "mpkg 6.0 Darwin"
 echo "net 1.1"
 echo "Checking architecture..."
 if [[ -z $(uname -a | grep "Darwin") ]]; then

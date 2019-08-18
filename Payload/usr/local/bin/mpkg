@@ -506,7 +506,7 @@ if [[ $args == "-r" ]]; then
 			echo "Removing control..."
 			sudo rm -r $LIBRARY/db/"$pkg"
 			sudo rm $LIBRARY/lock
-			echo -e "${GRN}Done."
+			echo -e "${GRN}Done.${NC}"
 			exit
 		fi
 	else

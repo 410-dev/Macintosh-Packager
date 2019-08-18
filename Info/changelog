@@ -4,3 +4,6 @@ Version 6.0 Darwin
 - (Unfortunately) Removed mpkg support for Linux
 - Able to have space in the path string while using mpkg-make
 - Able to have space in the path string while using mpkgcreate
+
+Version 6.0.1 Darwin
+- Fixed failing color restoration

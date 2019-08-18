@@ -1,2 +1,6 @@
-Version 5.3 Duo
-- New command: mpkgcreate
+Version 6.0 Darwin
+- Colored Output
+- Fixed mpkgcreate manual missing bug
+- (Unfortunately) Removed mpkg support for Linux
+- Able to have space in the path string while using mpkg-make
+- Able to have space in the path string while using mpkgcreate

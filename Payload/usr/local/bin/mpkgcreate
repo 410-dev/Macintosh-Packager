@@ -1,4 +1,5 @@
 #!/bin/bash
+LIBRARY=$ROOTFS"usr/local/mpkglib"
 if [[ -z "$1" ]]; then
 	$LIBRARY/binary/mpkgcreate-manual
 	exit
@@ -18,26 +19,22 @@ else
 	mkdir "$1"/"$2"
 	PTH="$1"/"$2"
 fi
-mkdir $PTH/"Info"
-mkdir $PTH/"Payload"
-mkdir $PTH/"userPayload"
-touch $PTH/Info/pkgname
-touch $PTH/Info/pkgid
-touch $PTH/Info/depends
-touch $PTH/Info/changelog
-touch $PTH/Info/os-architecture
-touch $PTH/Info/version
-touch $PTH/Info/compatibility.sh
-touch $PTH/Info/preinst.sh
-touch $PTH/Info/postinst.sh
-touch $PTH/Info/prerm.sh
-touch $PTH/Info/postrm.sh
-echo $2 > $PTH/Info/pkgname
-echo $2 > $PTH/Info/pkgid
-echo "#\!/bin/bash" > $PTH/Info/compatibility.sh
-echo "#\!/bin/bash" > $PTH/Info/preinst.sh
-echo "#\!/bin/bash" > $PTH/Info/postinst.sh
-echo "#\!/bin/bash" > $PTH/Info/prerm.sh
-echo "#\!/bin/bash" > $PTH/Info/postrm.sh
-chmod +x $PTH/Info/*.sh
-echo "Created "$PTH" workspace."
+mkdir "$PTH"/"Info"
+mkdir "$PTH"/"Payload"
+mkdir "$PTH"/"userPayload"
+touch "$PTH"/Info/pkgname
+touch "$PTH"/Info/pkgid
+touch "$PTH"/Info/depends
+touch "$PTH"/Info/changelog
+touch "$PTH"/Info/os-architecture
+touch "$PTH"/Info/version
+touch "$PTH"/Info/compatibility.sh
+touch "$PTH"/Info/preinst.sh
+touch "$PTH"/Info/postinst.sh
+touch "$PTH"/Info/prerm.sh
+touch "$PTH"/Info/postrm.sh
+touch "$PTH"/Info/conflicts
+echo $2 > "$PTH"/Info/pkgname
+echo $2 > "$PTH"/Info/pkgid
+chmod +x "$PTH"/Info/*.sh
+echo "Created ""$PTH"" workspace."

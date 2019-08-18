@@ -4,24 +4,29 @@ pkg=$2
 ROOTFS="/"
 LIBRARY=$ROOTFS"usr/local/mpkglib"
 SEDLIB="\\/usr\\/local\\/mpkglib\\/temp\\/Payload\\/"
+RED='\033[0;31m'
+GRN='\033[0;32m'
+NC='\033[0m'
 if [[ -z $args ]]; then
 	$LIBRARY/binary/mpkg-manual
 	exit
 fi
 echo "Running Macintosh Packager-live..."
-echo "Last Update: May 5, 2019 KST 15:38:20"
+echo "Last Update: Aug 18, 2019 KST 15:38:20"
 echo "BASE: MPKG 1.2"
 echo "MPKG 4.3 SEMI-COMPATIBILITY LAYER INCLUDED"
 if [ "$EUID" -ne 0 ]; then 
 	echo "Not enough permission!"
  	exit
 fi
-sudo mkdir $LIBRARY
-sudo mkdir $LIBRARY/db
-sudo mkdir $LIBRARY/temp
+if [[ ! -e $LIBRARY ]]; then
+	sudo mkdir $LIBRARY
+	sudo mkdir $LIBRARY/db
+	sudo mkdir $LIBRARY/temp
+fi
 if [[ -z $(echo $pkg|grep ".mpack") ]]; then
-	echo "E:36"
-	echo "It is not a mpkg package!"
+	echo -e "${RED}E:36${NC}"
+	echo -e "${RED}It is not a mpkg package!${NC}"
 	exit
 else
 	echo "Locking mpkg..."
@@ -35,8 +40,8 @@ else
 	fi
 	cp $pkg $LIBRARY/temp/
 	if [ ! -e $LIBRARY/temp/*.mpack ]; then
-		echo "E:31"
-		echo "Failed to unpack."
+		echo -e "${RED}E:31${NC}"
+		echo -e "${RED}Failed to unpack.${NC}"
 		sudo rm -r $LIBRARY/temp
 		sudo rm $LIBRARY/lock
 		exit
@@ -44,15 +49,15 @@ else
 	mv $LIBRARY/temp/*.mpack $LIBRARY/temp/package.zip
 	unzip -qq $LIBRARY/temp/package.zip -d $LIBRARY/temp
 	if [ ! -e $LIBRARY/temp/Info.zip ]; then
-		echo "E:22"
-		echo "Package Corruption (No Control Cluster). Unable to continue."
+		echo -e "${RED}E:22${NC}"
+		echo -e "${RED}Package Corruption (No Control Cluster). Unable to continue.${NC}"
 		sudo rm -r $LIBRARY/temp
 		sudo rm $LIBRARY/lock
 		exit
 	fi
 	if [ ! -e $LIBRARY/temp/Payload.zip ]; then
-		echo "E:23"
-		echo "Package Corruption (No Payload). Unable to continue."
+		echo -e "${RED}E:23${NC}"
+		echo -e "${RED}Package Corruption (No Payload). Unable to continue.${NC}"
 		sudo rm -r $LIBRARY/temp
 		sudo rm $LIBRARY/lock
 		exit
@@ -63,26 +68,26 @@ fi
 mkdir $LIBRARY/temp/Payload
 unzip -qq $LIBRARY/temp/Payload.zip -d $LIBRARY/temp/Payload
 if [[ ! -e $LIBRARY/temp/Info/pkgname ]]; then
-	echo "E:37"
-	echo "Package Corruption (No PN control). Unable to continue."
+	echo -e "${RED}E:37${NC}"
+	echo -e "${RED}Package Corruption (No PN control). Unable to continue.${NC}"
 	sudo rm -r $LIBRARY/temp
 	sudo rm $LIBRARY/lock
 	exit
 elif [[ ! -e $LIBRARY/temp/Info/version ]]; then
-	echo "E:38"
-	echo "Package Corruption (No Version control). Unable to continue."
+	echo -e "${RED}E:38${NC}"
+	echo -e "${RED}Package Corruption (No Version control). Unable to continue.${NC}"
 	sudo rm -r $LIBRARY/temp
 	sudo rm $LIBRARY/lock
 	exit
 elif [[ ! -e $LIBRARY/temp/Info/pkgid ]]; then
-	echo "E:38"
-	echo "Package Corruption (No PI control). Unable to continue."
+	echo -e "${RED}E:38${NC}"
+	echo -e "${RED}Package Corruption (No PI control). Unable to continue.${NC}"
 	sudo rm -r $LIBRARY/temp
 	sudo rm $LIBRARY/lock
 	exit
 elif [[ ! -e $LIBRARY/temp/Payload ]]; then
-	echo "E:39"
-	echo "Package Corruption (No payload). Unable to continue."
+	echo -e "${RED}E:39${NC}"
+	echo -e "${RED}Package Corruption (No payload). Unable to continue.${NC}"
 	sudo rm -r $LIBRARY/temp
 	sudo rm $LIBRARY/lock
 	exit
@@ -117,5 +122,6 @@ echo "Finished installing:" $(<$LIBRARY/temp/Info/pkgname) $(<$LIBRARY/temp/Info
 echo "Cleaning up..."
 sudo rm -r $LIBRARY/temp
 sudo rm $LIBRARY/lock
+echo -e "${GRN}Done.${NC}"
 exit
 

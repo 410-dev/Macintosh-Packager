@@ -2,6 +2,10 @@
 ADDRESS="https://github.com/HTTP410GONE/MacintoshPackager/releases/download/5.3duo/mpkg_5.3duo_duo.mpack"
 MPKGLIVE="https://raw.githubusercontent.com/HTTP410GONE/MacintoshPackager/master/mpkg-live"
 NETINSTALL="https://github.com/HTTP410GONE/MacintoshPackager/releases/download/Net1.1/net_1.1_darwin64-signed.mpack"
+RED='\033[0;31m'
+GRN='\033[0;32m'
+BLU='\033[0;34m'
+NC='\033[0m'
 echo "NETINSTALL-LIVE"
 echo "VERSION: 1.7"
 echo "LAST UPDATE: JUNE.29.2019 KST 14:41:51"
@@ -10,7 +14,7 @@ echo "mpkg 5.3 Duo"
 echo "net 1.1"
 echo "Checking architecture..."
 if [[ -z $(uname -a | grep "Darwin") ]]; then
-    echo "Architecture mismatch."
+    echo -e "${RED}Architecture mismatch.${NC}"
     exit 1
 fi
 echo "Downloading files..."
@@ -26,4 +30,4 @@ sudo rm ~/mpkglive
 sudo rm ~/net.mpack
 sudo rm ~/mpkg.mpack
 sudo rm ~/netlive
-echo "Done."
+echo "${GRN}Done.${NC}"

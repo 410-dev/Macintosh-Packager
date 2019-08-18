@@ -1,70 +1,74 @@
 #!/bin/bash
 ROOTFS="/"
 LIBRARY=$ROOTFS"usr/local/mpkglib"
-if [[ -z $3 ]]; then
+RED='\033[0;31m'
+GRN='\033[0;32m'
+BLU='\033[0;34m'
+NC='\033[0m'
+if [[ -z "$3" ]]; then
 	$LIBRARY/binary/mpkgmake-manual
 	exit
 fi
 if [[ ! -z $1 ]]; then
 	if [[ $1 -ne "-a" ]]; then
-		echo "Missing required parameter: -a [OS Architecture]"
+		echo -e "${RED}Missing required parameter: -a [OS Architecture]${NC}"
 		exit
 	fi
 	if [[ -z $2 ]]; then
-		echo "Missing required parameter: OS architecture (Darwin / Linux / Duo)"
+		echo -e "${RED}Missing required parameter: OS architecture (Darwin / Linux / Duo)${NC}"
 		exit
 	fi
-	if [[ -z $3 ]]; then
-		echo "Missing package parameter!"
+	if [[ -z "$3" ]]; then
+		echo -e "${RED}Missing package parameter!${NC}"
 		exit
 	fi
-	if [[ -e $3/Payload ]]; then
-		cd $3/Payload
+	if [[ -e "$3"/Payload ]]; then
+		cd "$3"/Payload
 		zip -rq Payload.zip . -x ".*" -x "__MACOSX"
 		mv Payload.zip ../Payload.zip
 		cd ..
-		if [[ -e $3/userPayload ]]; then
-			echo "userPayload detected..."
-			cd $3/userPayload
+		if [[ -e "$3"/userPayload ]]; then
+			echo -e "${BLU}userPayload detected...${NC}"
+			cd "$3"/userPayload
 			zip -rq userPayload.zip . -x ".*" -x "__MACOSX"
 			mv userPayload.zip ../userPayload.zip
 			cd ..
 		fi
-		if [[ ! -e $3/Info/pkgid ]]; then
-			rm $3/Payload.zip
-			echo "Package ID Missing!"
+		if [[ ! -e "$3"/Info/pkgid ]]; then
+			rm "$3"/Payload.zip
+			echo -e "${RED}Package ID Missing!${NC}"
 			exit
-		elif [[ -z $(<$3/Info/pkgid) ]]; then
-			rm $3/Payload.zip
-			echo "Package ID empty!"
+		elif [[ -z $(<"$3"/Info/pkgid) ]]; then
+			rm "$3"/Payload.zip
+			echo -e "${RED}Package ID empty!${NC}"
 			exit
 		else
-			echo "Package ID: "$(<$3/Info/pkgid)
+			echo "Package ID: "$(<"$3"/Info/pkgid)
 		fi
-		if [[ ! -e $3/Info/pkgname ]]; then
-			rm $3/Payload.zip
-			echo "Package Name Missing!"
+		if [[ ! -e "$3"/Info/pkgname ]]; then
+			rm "$3"/Payload.zip
+			echo -e "${RED}Package Name Missing!${NC}"
 			exit
-		elif [[ -z $(<$3/Info/pkgname) ]]; then
-			rm $3/Payload.zip
-			echo "Package Name empty!"
+		elif [[ -z $(<"$3"/Info/pkgname) ]]; then
+			rm "$3"/Payload.zip
+			echo -e "${RED}Package Name empty!${NC}"
 			exit
 		else
-			echo "Package Name: "$(<$3/Info/pkgname)
+			echo "Package Name: "$(<"$3"/Info/pkgname)
 		fi
-		if [[ ! -e $3/Info/version ]]; then
-			rm $3/Payload.zip
-			echo "Package version Missing!"
+		if [[ ! -e "$3"/Info/version ]]; then
+			rm "$3"/Payload.zip
+			echo -e "${RED}Package version Missing!${NC}"
 			exit
-		elif [[ -z $(<$3/Info/version) ]]; then
-			rm $3/Payload.zip
-			echo "Package version empty!"
+		elif [[ -z $(<"$3"/Info/version) ]]; then
+			rm "$3"/Payload.zip
+			echo -e "${RED}Package version empty!${NC}"
 			exit
 		else
-			echo "Package Version: "$(<$3/Info/version)
+			echo "Package Version: "$(<"$3"/Info/version)
 		fi
 		echo "Packing Information Cluster..."
-		cd $3/Info
+		cd "$3"/Info
 		zip -rq Info.zip . -x ".*" -x "__MACOSX"
 		mv Info.zip ../Info.zip
 		cd ..
@@ -75,8 +79,9 @@ if [[ ! -z $1 ]]; then
 			mv userPayload.zip ./cache/userPayload.zip
 		fi
 		cd cache
-		NAME=$(<$3/Info/pkgid)
-		NAME="$NAME"_$(<$3/Info/version)
+		echo "Naming..."
+		NAME=$(<"$3"/Info/pkgid)
+		NAME="$NAME"_$(<"$3"/Info/version)
 		if [[ $2 == "Darwin" ]]; then
 			NAME="$NAME"_darwin64
 		elif [[ $2 == "Linux" ]]; then
@@ -86,17 +91,18 @@ if [[ ! -z $1 ]]; then
 		else
 			NAME="$NAME"_noarch
 		fi
+		echo "Packing up..."
 		zip -rq $NAME.zip . -x ".*" -x "__MACOSX"
 		mv "$NAME.zip" ../"$NAME.zip"
 		cd ..
 		mv "$NAME.zip" "$NAME.mpack"
 		rm -r cache
-		echo "Done."
+		echo -e "${GRN}Done.${NC}"
 	else
-		echo "Payload directory not found."
+		echo -e "${RED}Payload directory not found.${NC}"
 		exit
 	fi
 else
-	echo "Missing parameter: architecture"
+	echo -e "${RED}Missing parameter: architecture${NC}"
 	exit
 fi

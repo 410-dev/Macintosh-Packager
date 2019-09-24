@@ -15,11 +15,11 @@ if [[ ! -z $1 ]]; then
 		exit
 	fi
 	if [[ -z $2 ]]; then
-		echo -e "${RED}Missing required parameter: OS architecture (Darwin / Linux / Duo)${NC}"
+		echo -e "${RED}Error: ${NC}Missing required parameter: OS architecture (Darwin / Linux / Duo)${NC}"
 		exit
 	fi
 	if [[ -z "$3" ]]; then
-		echo -e "${RED}Missing package parameter!${NC}"
+		echo -e "${RED}Error: ${NC}Missing package parameter!${NC}"
 		exit
 	fi
 	if [[ -e "$3"/Payload ]]; then
@@ -99,10 +99,10 @@ if [[ ! -z $1 ]]; then
 		rm -r cache
 		echo -e "${GRN}Done.${NC}"
 	else
-		echo -e "${RED}Payload directory not found.${NC}"
+		echo -e "${RED}Error: ${NC}Payload directory not found.${NC}"
 		exit
 	fi
 else
-	echo -e "${RED}Missing parameter: architecture${NC}"
+	echo -e "${RED}Error: ${NC}Missing parameter: architecture${NC}"
 	exit
 fi

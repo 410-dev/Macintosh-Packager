@@ -1,0 +1,373 @@
+#!/bin/bash
+pkg=$1
+ROOTFS="/"
+LIBRARY="/usr/local/mpkglib"
+SEDLIB="\\/usr\\/local\\/mpkglib\\/temp\\/Payload\\/"
+target="/"
+userpayloadtarget="nil"
+
+RED='\033[0;31m'
+GRN='\033[0;32m'
+YEL='\033[0;33m'
+BLU='\033[0;34m'
+NC='\033[0m'
+
+if [[ $2 == "--target" ]]; then
+	if [[ -z $3 ]]; then
+		echo -e "${RED}Error: ${NC}Missing target path.${NC}"
+		exit
+	elif [[ ! -e $3 ]]; then
+		echo -e "${RED}Error: ${NC}Target does not exists.${NC}"
+		exit
+	elif [[ -z $(file $3 | grep ": directory") ]]; then
+		echo "${RED}Error: ${NC}Target is not a directory.${NC}"
+		exit
+	else
+		target=$3
+		echo -e -e "${YEL}WARNING: ${NC}Modified installation destination target for system. This will NOT support removal.${NC}"
+	fi
+fi
+if [[ $4 == "--usertarget" ]]; then
+	if [[ -z $5 ]]; then
+		echo -e "${RED}Error:${NC} Missing target path.${NC}"
+		exit
+	elif [[ ! -e $5 ]]; then
+		echo -e "${RED}Error:${NC} Target does not exists.${NC}"
+		exit
+	elif [[ -z $(file $5 | grep ": directory") ]]; then
+		echo -e "${RED}Error:${NC} Target is not a directory.${NC}"
+		exit
+	else
+		userpayloadtarget=$5
+		echo -e "${YEL}WARNING:${NC} Modified installation destination target for user. This will NOT support removal.${NC}"
+	fi
+fi
+function dependencyCheck() {
+	echo "Checking for dependencies..."
+	if [[ -e $LIBRARY/temp/Info/depends ]]; then
+		echo -e "${YEL}WARNING: ${NC}This package depends: "$(cat $LIBRARY/temp/Info/depends)"${NC}"
+		declare -i loopset=$(wc -l < $LIBRARY/temp/Info/depends)
+		declare -i loopProgress=0
+		echo "Total dependencies required:" $loopset
+		echo "Checking dependencies installation..."
+		while [[ $loopset -gt $loopProgress ]]; do
+			loopProgress=$(( $loopProgress + 1 ))
+			if [[ -z $(awk -v line=$loopProgress 'NR==line' $LIBRARY/temp/Info/depends) ]]; then
+				echo -e "${YEL}WARNING:${NC} Dependency list has empty line: " $(awk -v line=$loopProgress 'NR==line' $LIBRARY/temp/Info/depends) "${NC}"
+			elif [[ -z $(ls $LIBRARY/db | grep $(awk -v line=$loopProgress 'NR==line' $LIBRARY/temp/Info/depends)) ]]; then
+				echo -e "${RED}Error:${NC} Dependency \""$(awk -v line=$loopProgress 'NR==line' $LIBRARY/temp/Info/depends)"\" is not installed.${NC}"
+				sudo rm $LIBRARY/lock
+				exit
+			fi
+		done
+	fi
+}
+
+function conflictCheck() {
+	echo "Checking for conflicts..."
+	if [[ -e $LIBRARY/temp/Info/conflicts ]]; then
+		echo -e "${YEL}WARNING: ${NC}This package conflicts: "$(cat $LIBRARY/temp/Info/conflicts)"${NC}"
+		declare -i loopset=$(wc -l < $LIBRARY/temp/Info/conflicts)
+		declare -i loopProgress=0
+		echo "Total conflicts:" $loopset
+		echo "Checking conflicts installation..."
+		while [[ $loopset -gt $loopProgress ]]; do
+			loopProgress=$(( $loopProgress + 1 ))
+			if [[ -z $(awk -v line=$loopProgress 'NR==line' $LIBRARY/temp/Info/conflicts) ]]; then
+				echo -e "${YEL}WARNING: ${NC}Conflict list has empty line: " $(awk -v line=$loopProgress 'NR==line' $LIBRARY/temp/Info/conflicts)"${NC}"
+			elif [[ ! -z $(ls $LIBRARY/db | grep $(awk -v line=$loopProgress 'NR==line' $LIBRARY/temp/Info/conflicts)) ]]; then
+				echo -e "${RED}Error: ${NC}Conflicting package \""$(awk -v line=$loopProgress 'NR==line' $LIBRARY/temp/Info/conflicts)"\" is installed.${NC}"
+				sudo rm $LIBRARY/lock
+				exit
+			fi
+		done
+	fi
+}
+
+if [[ -e $LIBRARY/convert_failed ]]; then
+	echo -e "${YEL}WARNING:${NC} DEPRICATED DATABASE CONVERSION FAILED.${NC}"
+fi
+echo "Running Macintosh Packager..."
+if [ "$EUID" -ne 0 ]; then 
+	echo -e "${RED}Error: ${NC}Not enough permission!${NC}"
+ 	exit
+fi
+if [[ -z "$pkg" ]]; then
+	echo -e "${RED}Error: (35)${NC} No package specified!${NC}"
+	exit
+fi
+if [[ ! -e "$pkg" ]]; then
+	echo -e "${RED}Error: (30)${NC} No such package found!${NC}"
+	exit
+fi
+if [[ -e $LIBRARY/lock ]]; then
+	echo -e "${RED}Error: (00) ${NC}MPKG LOCKED${NC}"
+	exit
+fi
+if [[ -z $(echo "$pkg"|grep ".mpack") ]]; then
+	if [[ -z $(echo "$pkg"|grep ".mp") ]]; then
+		if [[ -e $LIBRARY/binary/LegacyPackageCompatibilityLayer ]]; then
+			sudo LegacyPackageCompatibilityLayer -i $pkg $3
+			exit
+		else
+			echo -e "${RED}Error: ${NC}This package requires mpkg <= 3.1 (Relatively unstable) installed.${NC}"
+			exit
+		fi
+	else
+		echo -e "${RED}Error: (36)${NC} It is not a mpkg package!${NC}"
+		exit
+	fi
+else
+	echo "Locking mpkg..."
+	sudo touch $LIBRARY/lock
+	echo "Unpacking..."
+	if [ ! -e $LIBRARY/temp ]; then
+		sudo mkdir $LIBRARY/temp
+	else
+		echo -e "${YEL}WARNING: ${NC}It seems last process uncleanly finished...${NC}"
+		sudo rm -r $LIBRARY/temp
+		sudo mkdir $LIBRARY/temp
+	fi
+	cp "$pkg" $LIBRARY/temp/
+	if [ ! -e $LIBRARY/temp/*.mpack ]; then
+		echo -e "${RED}Error: (31) ${NC}Failed to unpack.${NC}"
+		sudo rm -r $LIBRARY/temp
+		sudo rm $LIBRARY/lock
+		exit
+	fi
+	mv $LIBRARY/temp/*.mpack $LIBRARY/temp/package.zip
+	unzip -qq $LIBRARY/temp/package.zip -d $LIBRARY/temp
+	if [ ! -e $LIBRARY/temp/Info.zip ]; then
+		echo -e "${RED}Error: (22)${NC} Package Corruption (No Control Cluster). Unable to continue.${NC}"
+		sudo rm -r $LIBRARY/temp
+		sudo rm $LIBRARY/lock
+		exit
+	fi
+	if [ ! -e $LIBRARY/temp/Payload.zip ]; then
+		echo -e "${RED}Error: (23)${NC} Package Corruption (No Payload). Unable to continue.${NC}"
+		sudo rm -r $LIBRARY/temp
+		sudo rm $LIBRARY/lock
+		exit
+	fi
+	mkdir $LIBRARY/temp/Info
+	unzip -qq $LIBRARY/temp/Info.zip -d $LIBRARY/temp/Info
+fi
+if [[ -e $LIBRARY/temp/Info/os-architecture ]]; then
+	ARCHITECTURE=$(<$LIBRARY/temp/Info/os-architecture)
+	if [[ -z $(uname | grep $ARCHITECTURE) ]]; then
+		echo -e "${RED}Error: (40)${NC} OS Architecture mismatch.${NC}"
+		sudo rm -r $LIBRARY/temp
+		sudo rm $LIBRARY/lock
+		exit
+	fi
+fi
+if [[ -e $LIBRARY/convert_failed ]]; then
+	echo -e "${YEL}WARNING:${NC} DEPRICATED DATABASE CONVERSION FAILED."
+fi
+mkdir $LIBRARY/temp/Payload
+unzip -qq $LIBRARY/temp/Payload.zip -d $LIBRARY/temp/Payload
+if [[ -e $LIBRARY/temp/userPayload.zip ]]; then
+	mkdir $LIBRARY/temp/userPayload
+	unzip -qq $LIBRARY/temp/userPayload.zip -d $LIBRARY/temp/userPayload
+fi
+if [[ ! -e $LIBRARY/temp/Info/pkgname ]]; then
+	echo -e "${RED}Error: (37)${NC} Package Corruption (No PN control). Unable to continue.${NC}"
+	sudo rm -r $LIBRARY/temp
+	sudo rm $LIBRARY/lock
+	exit
+elif [[ ! -e $LIBRARY/temp/Info/version ]]; then
+	echo -e "${RED}Error: (38)${NC} Package Corruption (No Version control). Unable to continue.${NC}"
+	sudo rm -r $LIBRARY/temp
+	sudo rm $LIBRARY/lock
+	exit
+elif [[ ! -e $LIBRARY/temp/Info/pkgid ]]; then
+	echo -e "${RED}Error: (38)${NC} Package Corruption (No PI control). Unable to continue.${NC}"
+	sudo rm -r $LIBRARY/temp
+	sudo rm $LIBRARY/lock
+	exit
+fi
+if [[ ! -e $LIBRARY/temp/Payload ]]; then
+	echo -e "${RED}Error: (39)${NC} Package Corruption (No payload). Unable to continue.${NC}"
+	sudo rm -r $LIBRARY/temp
+	sudo rm $LIBRARY/lock
+	exit
+fi
+echo "Installing "$(<$LIBRARY/temp/Info/pkgname)"..."
+echo "Selecting "$(<$LIBRARY/temp/Info/pkgid) $(<$LIBRARY/temp/Info/version)" to install..."
+if [[ ! -z $(ls $LIBRARY/db | grep $(<$LIBRARY/temp/Info/pkgid)) ]]; then
+	echo -e "${YEL}WARNING: ${NC}"$(<$LIBRARY/temp/Info/pkgid) "is already installed.${NC}"
+	if [[ -e $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/unremovable ]]; then
+		echo -e "${RED}Error: (51)${NC} This package cannot be reinstalled, because it is unremovable flag is on for this package ID.${NC}"
+		sudo rm -r $LIBRARY/temp
+		sudo rm $LIBRARY/lock
+		exit
+	fi
+	if [[ $(<$LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/version) == $(<$LIBRARY/temp/Info/version) ]]; then
+		if [[ $2 == "--override" ]]; then
+			echo "Reinstalling package..."
+		else
+			echo -e "${RED}Error: (26) ${NC}Package "$(<$LIBRARY/temp/Info/pkgid) "is already installed with same version.${NC}"
+			echo -e "${RED}Process stopped for package protection.${NC}"
+			echo -e "${BLU}To override, add --override after the package address.${NC}"
+			sudo rm -r $LIBRARY/temp
+			sudo rm $LIBRARY/lock
+			exit
+		fi
+	else
+		echo "Upgrading package..."
+	fi
+else
+	echo "This package is not installed yet."
+fi
+if [[ -e $LIBRARY/convert_failed ]]; then
+	echo -e "${YEL}WARNING:${NC} DEPRICATED DATABASE CONVERSION FAILED."
+fi
+if [[ -e $LIBRARY/temp/Info/compatibility.sh ]]; then
+	echo "Checking compatibility..."
+	sudo $LIBRARY/temp/Info/compatibility.sh $LIBRARY/temp/Info
+	if [[ -e $LIBRARY/temp/Info/compatibility-warning ]]; then
+		echo -e "${YEL}WARNING:${NC} Compatibility warning detected..."
+	elif [[ -e $LIBRARY/temp/Info/compatibility-error ]]; then
+		echo -e "${RED}Error: (99)${NC} This package is incompatible."
+		sudo rm -r $LIBRARY/temp
+		sudo rm $LIBRARY/lock
+		exit
+	else
+		echo -e "${GRN}Done: ${NC}Compatibility check complete.${NC}"
+	fi
+fi
+if [[ $2 -ne "--ignore-dependency" ]]; then
+	dependencyCheck
+fi
+conflictCheck
+if [[ -e $LIBRARY/temp/Info/preinst.sh ]]; then
+	echo "Running preinst..."
+	sudo $LIBRARY/temp/Info/preinst.sh
+fi
+echo "Removing Finder Elements..."
+sudo find $LIBRARY/temp -name ".DS_Store" -exec rm {} \;
+echo "Installing..."
+if [[ $target == "/" ]]; then
+	sudo cp -r $LIBRARY/temp/Payload/* $ROOTFS
+else
+	sudo cp -r $LIBRARY/temp/Payload/* $target
+fi
+if [[ -e $LIBRARY/temp/userPayload ]]; then
+	echo "Userpayload detected...!"
+	if [[ -e $LIBRARY/usersupport/localuser ]]; then
+		echo "User directory: "$(<$LIBRARY/usersupport/localuser)
+		if [[ $userpayloadtarget == "nil" ]]; then
+			sudo cp -r $LIBRARY/temp/userPayload/* $(<$LIBRARY/usersupport/localuser)
+		else
+			sudo cp -r $LIBRARY/temp/userPayload/* $userpayloadtarget
+		fi
+	else
+		echo -e "${YEL}This package requires \"libusersupport\" to copy user library.${NC}"
+		echo -e "${YEL}RootFS Payload will be copied, but userpayload will NOT be copied, since there is no supporting layer.${NC}"
+		echo -e "${YEL}Please install libusersupport first, then reinstall this package.${NC}"
+		echo -e "${RED}MISSING USERPAYLOAD MAY CAUSE SERIOUS MALFUNCTION OF PACKAGE, AND MAY LEAD TO DAMANGING THE MACHINE.${NC}"
+		sudo touch $LIBRARY/temp/userpayloadnotcopied
+	fi
+fi
+if [[ -e $LIBRARY/temp/Info/postinst.sh ]]; then
+	echo "Running postinst..." 
+	sudo $LIBRARY/temp/Info/postinst.sh
+fi
+echo "Installing controls..."
+if [[ ! -e $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid) ]]; then
+	sudo mkdir $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)
+fi
+sudo cp $LIBRARY/temp/Info/* $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/
+if [[ $target == "/" ]]; then
+	echo "Writing connected files to database..."
+	sudo find $LIBRARY/temp/Payload -not -type d | grep $LIBRARY/temp/Payload > $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
+	sudo sed -i '' s/$SEDLIB/\\// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
+	sudo sed -i '' s/Thumbs.db// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
+	sudo sed -i '' s/.DS_Store// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
+	sudo sed -i '' s/\\/usr\\/local\\/mpkglib\\/temp\\/Payload// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
+else
+	echo -e "${YEL}WARNING:${NC} Skipped index writing."
+	touch $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
+fi
+if [[ -e $LIBRARY/temp/userPayload ]]; then
+	if [[ $userpayloadtarget == "nil" ]]; then
+		if [[ ! -e $LIBRARY/temp/userpayloadnotcopied ]]; then
+			sudo find $LIBRARY/temp/userPayload -not -type d | grep $LIBRARY/temp/userPayload > $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
+			sudo sed -i '' s/$SEDLIB/\\// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
+			sudo sed -i '' s/Thumbs.db// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
+			sudo sed -i '' s/.DS_Store// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
+			sudo sed -i '' s/\\/usr\\/local\\/mpkglib\\/temp\\/userPayload// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
+		else
+			echo -e "${RED}Userpayload is not copied, so will not be added to database.${NC}"
+			sudo rm $LIBRARY/temp/userpayloadnotcopied
+		fi
+	else
+		echo -e "${YEL}Skipped user index writing.${NC}"
+		touch $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
+	fi
+fi
+echo -e "${GRN}Done: ${NC}Analysis written to database.${NC}"
+if [[ -e $LIBRARY/convert_failed ]]; then
+	echo -e "${YEL}Warning! DEPRICATED DATABASE CONVERSION FAILED.${NC}"
+fi
+if [[ $3 == "--target" ]]; then
+	echo -e "${YEL}WARNING:${NC} Temporarily unlocking mpkg for subprocess..."
+	sudo rm $LIBRARY/lock
+	sudo mpkg -b $(<$LIBRARY/temp/Info/pkgid) -y
+	echo "Relocking..."
+	sudo touch $LIBRARY/lock
+	sudo rm $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/unremovable
+elif [[ $4 == "--usertarget" ]]; then
+	echo -e "${YEL}WARNING:${NC} Temporarily unlocking mpkg for subprocess..."
+	sudo rm $LIBRARY/lock
+	sudo mpkg -b $(<$LIBRARY/temp/Info/pkgid) -y
+	echo "Relocking..."
+	sudo touch $LIBRARY/lock
+	sudo rm $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/unremovable
+fi
+echo -e "${GRN}Done: ${NC}Finished installing:" $(<$LIBRARY/temp/Info/pkgname) $(<$LIBRARY/temp/Info/version)"${NC}"
+if [[ -e $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/depends ]]; then
+	if [[ ! -z $(cat $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/depends | grep "com.zeone.osxsubstrate") ]]; then
+		echo -e "${YEL}${YEL}WARNING:${NC} Requires Substrate Hookup."
+		if [[ -z $(ls $LIBRARY/db | grep "com.zeone.osxsubstrate") ]]; then
+			echo -e "${RED}Error: Substrate is not installed!${NC}"
+			echo -e "${YEL}This package has to be removed.${NC}"
+			echo "Uninstalling..."
+			if [[ -e $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/prerm.sh ]]; then
+				echo "Running prerm..."
+				$LIBRARY/db/"$pkg"/prerm.sh
+			fi
+			echo "Removing data..."
+			sudo rm -r $(<$LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files)
+			if [[ -e $LIBRARY/db/"$pkg"/postrm.sh ]]; then
+				echo "Running postrm..."
+				$LIBRARY/db/"$pkg"/postrm.sh
+			fi
+			echo "Removing control..."
+			removalID=$(<$LIBRARY/temp/Info/pkgid)
+			sudo rm -r $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)
+		else
+			echo "Reloading substrate database..."
+			/usr/local/substratelib/substrate --reload
+			echo -e "${GRN}Done.${NC}"
+		fi
+	fi
+fi
+if [[ -e $LIBRARY/temp/Info/changelog ]]; then
+	if [[ -z $(<$LIBRARY/temp/Info/changelog) ]]; then
+		echo -e "${YEL}WARNING:${NC} Skipped changelog because it is empty."
+	else
+		echo "Changelog ========================"
+		cat $LIBRARY/temp/Info/changelog
+		echo "=================================="
+	fi
+fi
+echo "Cleaning up..."
+sudo rm -r $LIBRARY/temp
+sudo rm $LIBRARY/lock
+echo -e "${GRN}Done.${NC}"
+exit
+if [[ -z $args ]]; then
+	$LIBRARY/binary/mpkg-manual
+	exit
+fi

@@ -1,9 +1,24 @@
-Version 6.0 Darwin
-- Colored Output
-- Fixed mpkgcreate manual missing bug
-- (Unfortunately) Removed mpkg support for Linux
-- Able to have space in the path string while using mpkg-make
-- Able to have space in the path string while using mpkgcreate
+Version 7.0 Darwin
+Added:
+- New text coloring system
+- Modulized components
+- Request sudo when needed
 
-Version 6.0.1 Darwin
-- Fixed failing color restoration
+Modified:
+- Remove blocking abort text color changed to red
+
+Deprecated:
+- --debug option no longer available
+
+Version 7.0.1 Darwin
+Modified:
+- Installation override failing bug fixed
+
+Version 7.0.2 Darwin
+Added:
+- mpkg-create and mpkg-make is integrated to mpkg -c and mpkg -m
+- Manual shows more options
+- Removing ignore dependency option added
+
+Modified:
+- BlockRemove flag fail fixed

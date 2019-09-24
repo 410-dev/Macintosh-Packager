@@ -1,0 +1,55 @@
+#!/bin/bash
+pkg=$1
+ROOTFS="/"
+LIBRARY="/usr/local/mpkglib"
+
+RED='\033[0;31m'
+GRN='\033[0;32m'
+YEL='\033[0;33m'
+BLU='\033[0;34m'
+NC='\033[0m'
+
+if [[ -z $1 ]]; then
+	echo -e "${RED}Error: ${NC}Missing argument: package id${NC}"
+	exit
+elif [[ ! -e $LIBRARY/db/$1 ]]; then
+	echo -e "${RED}Error: ${NC}Package is not installed.${NC}"
+	exit
+else
+	if [[ $2 == "-y" ]] || [[ $2 == "--yes" ]]; then
+		echo "Locking mpkg..."
+		touch $LIBRARY/lock
+		echo "Removing file connection from db..."
+		sudo rm $LIBRARY/db/$2/files
+		if [[ -e $LIBRARY/db/$2/userfiles ]]; then
+			sudo rm $LIBRARY/db/$2/userfiles
+		fi
+		echo "Adding unremovable flag..."
+		sudo touch $LIBRARY/db/$2/unremovable
+		echo -e "${GRN}Done.${NC}"
+		sudo rm $LIBRARY/lock
+	else
+		echo -e "${YEL}If you block removal:${NC}"
+		echo -e "${YEL}Unable to reinstall the package${NC}"
+		echo -e "${YEL}Unable to upgrade the package${NC}"
+		echo -e "${YEL}Unable to remove the package${NC}"
+		echo -e "${BLU}This action is irrevokable. Are you sure you want to continue? y/n (MUST BE LOWER CASE)${NC}"
+		read flag
+		if [[ $flag == "y" ]] || [[ $flag == "Y" ]]; then
+			echo "Locking mpkg..."
+			touch $LIBRARY/lock
+			echo "Removing file connection from db..."
+			sudo rm $LIBRARY/db/$2/files
+			if [[ -e $LIBRARY/db/$2/userfiles ]]; then
+				sudo rm $LIBRARY/db/$2/userfiles
+			fi
+			echo "Adding unremovable flag..."
+			sudo touch $LIBRARY/db/$2/unremovable
+			echo -e "${GRN}Done.${NC}"
+			sudo rm $LIBRARY/lock
+		else
+			echo -e "${RED}Aborted.${NC}"
+			exit
+		fi
+	fi
+fi

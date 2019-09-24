@@ -22,3 +22,8 @@ Added:
 
 Modified:
 - BlockRemove flag fail fixed
+
+Version 7.1 Darwin
+Added:
+- Unpacking feature added
+- Able to block from unpacking

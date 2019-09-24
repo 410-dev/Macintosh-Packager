@@ -1,5 +1,5 @@
 #!/bin/bash
-ADDRESS="https://github.com/HTTP410GONE/MacintoshPackager/releases/download/6.0.1/mpkg_6.0.1_darwin64.mpack"
+ADDRESS="https://github.com/HTTP410GONE/MacintoshPackager/releases/download/7.1/mpkg_7.1_darwin64.mpack"
 MPKGLIVE="https://raw.githubusercontent.com/HTTP410GONE/MacintoshPackager/master/mpkg-live"
 NETINSTALL="https://github.com/HTTP410GONE/MacintoshPackager/releases/download/Net1.1/net_1.1_darwin64-signed.mpack"
 RED='\033[0;31m'
@@ -8,9 +8,9 @@ BLU='\033[0;34m'
 NC='\033[0m'
 echo "NETINSTALL-LIVE"
 echo "VERSION: 1.8"
-echo "LAST UPDATE: AUG.18.2019 KST 18:44:06"
+echo "LAST UPDATE: SEP.24.2019 KST 19:18:44"
 echo "This will install: "
-echo "mpkg 6.0 Darwin"
+echo "mpkg 7.1 Darwin"
 echo "net 1.1"
 echo "Checking architecture..."
 if [[ -z $(uname -a | grep "Darwin") ]]; then

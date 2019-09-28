@@ -1,29 +1,4 @@
-Version 7.0 Darwin
+Version 7.1.1 Darwin
 Added:
-- New text coloring system
-- Modulized components
-- Request sudo when needed
-
-Modified:
-- Remove blocking abort text color changed to red
-
-Deprecated:
-- --debug option no longer available
-
-Version 7.0.1 Darwin
-Modified:
-- Installation override failing bug fixed
-
-Version 7.0.2 Darwin
-Added:
-- mpkg-create and mpkg-make is integrated to mpkg -c and mpkg -m
-- Manual shows more options
-- Removing ignore dependency option added
-
-Modified:
-- BlockRemove flag fail fixed
-
-Version 7.1 Darwin
-Added:
-- Unpacking feature added
-- Able to block from unpacking
+- Upgrade feature
+- MPKG-SE Supporting Library

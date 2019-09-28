@@ -43,6 +43,8 @@ elif [[ $args == "-c" ]] || [[ $args == "--create" ]]; then
 	/usr/local/bin/mpkg-create "$2"
 elif [[ $args == "-d" ]] || [[ $args == "--deploy" ]]; then
 	sudo /usr/local/bin/mpkg-deploy $USER "$2" "$3" "$4"
+elif [[ $args == "--upgrade" ]]; then
+	sudo /usr/local/bin/mpkg-upgrade
 else
 	$LIBRARY/binary/mpkg-manual
 	exit

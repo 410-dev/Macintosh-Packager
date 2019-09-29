@@ -1,17 +1,17 @@
 #!/bin/bash
-ADDRESS="https://github.com/HTTP410GONE/MacintoshPackager/releases/download/7.1/mpkg_7.1_darwin64.mpack"
+ADDRESS="https://github.com/HTTP410GONE/MacintoshPackager/releases/download/7.1.1/mpkg_7.1.1_darwin64.mpack"
 MPKGLIVE="https://raw.githubusercontent.com/HTTP410GONE/MacintoshPackager/master/mpkg-live"
-NETINSTALL="https://github.com/HTTP410GONE/MacintoshPackager/releases/download/Net1.1/net_1.1_darwin64-signed.mpack"
+NETINSTALL="https://github.com/HTTP410GONE/MacintoshPackager/releases/download/Net1.2/net_1.2_duo.mpack"
 RED='\033[0;31m'
 GRN='\033[0;32m'
 BLU='\033[0;34m'
 NC='\033[0m'
 echo "NETINSTALL-LIVE"
-echo "VERSION: 1.8"
-echo "LAST UPDATE: SEP.24.2019 KST 19:18:44"
+echo "VERSION: 1.81"
+echo "LAST UPDATE: SEP.29.2019"
 echo "This will install: "
-echo "mpkg 7.1 Darwin"
-echo "net 1.1"
+echo "mpkg 7.1.1 Darwin"
+echo "net 1.2"
 echo "Checking architecture..."
 if [[ -z $(uname -a | grep "Darwin") ]]; then
     echo -e "${RED}Architecture mismatch.${NC}"

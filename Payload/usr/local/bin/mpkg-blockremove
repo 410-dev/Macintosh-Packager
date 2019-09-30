@@ -17,15 +17,15 @@ elif [[ ! -e $LIBRARY/db/$1 ]]; then
 	exit
 else
 	if [[ $2 == "-y" ]] || [[ $2 == "--yes" ]]; then
-		echo "Locking mpkg..."
+		echo "Locking library..."
 		touch $LIBRARY/lock
 		echo "Removing file connection from db..."
-		sudo rm $LIBRARY/db/$2/files
-		if [[ -e $LIBRARY/db/$2/userfiles ]]; then
-			sudo rm $LIBRARY/db/$2/userfiles
+		sudo rm $LIBRARY/db/$1/files
+		if [[ -e $LIBRARY/db/$1/userfiles ]]; then
+			sudo rm $LIBRARY/db/$1/userfiles
 		fi
 		echo "Adding unremovable flag..."
-		sudo touch $LIBRARY/db/$2/unremovable
+		sudo touch $LIBRARY/db/$1/unremovable
 		echo -e "${GRN}Done.${NC}"
 		sudo rm $LIBRARY/lock
 	else
@@ -36,15 +36,19 @@ else
 		echo -e "${BLU}This action is irrevokable. Are you sure you want to continue? y/n (MUST BE LOWER CASE)${NC}"
 		read flag
 		if [[ $flag == "y" ]] || [[ $flag == "Y" ]]; then
-			echo "Locking mpkg..."
+			echo "Locking library..."
 			touch $LIBRARY/lock
 			echo "Removing file connection from db..."
-			sudo rm $LIBRARY/db/$2/files
-			if [[ -e $LIBRARY/db/$2/userfiles ]]; then
-				sudo rm $LIBRARY/db/$2/userfiles
+			if [[ ! -e $LIBRARY/db/$1/files ]]; then
+				echo -e "${YEL}WARNING: ${NC}Files connection not found."
+			else
+				sudo rm $LIBRARY/db/$1/files
+			fi
+			if [[ -e $LIBRARY/db/$1/userfiles ]]; then
+				sudo rm $LIBRARY/db/$1/userfiles
 			fi
 			echo "Adding unremovable flag..."
-			sudo touch $LIBRARY/db/$2/unremovable
+			sudo touch $LIBRARY/db/$1/unremovable
 			echo -e "${GRN}Done.${NC}"
 			sudo rm $LIBRARY/lock
 		else

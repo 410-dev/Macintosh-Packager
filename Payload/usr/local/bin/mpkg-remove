@@ -2,7 +2,6 @@
 pkg=$1
 ROOTFS="/"
 LIBRARY="/usr/local/mpkglib"
-
 RED='\033[0;31m'
 GRN='\033[0;32m'
 YEL='\033[0;33m'
@@ -27,9 +26,11 @@ if [[ -z $(ls $LIBRARY/db | grep "$pkg") ]]; then
 	echo "Type mpkg -l to see the installed packages."
 	exit
 fi
-echo "Locking mpkg..."
+echo "Locking library..."
 sudo touch $LIBRARY/lock
-if [[ $2 -ne "--ignore-dependency" ]]; then
+if [[ "$2" == "--ignore-dependency" ]]; then
+	echo -e "${YEL}WARNING:${NC} Skipped dependency check."
+else
 	echo "Checking for dependencies..."
 	sudo find $LIBRARY/db -name "depends">$LIBRARY/cache/dependencies-list
 	echo -e "${GRN}Done: ${NC}Search complete...${NC}"

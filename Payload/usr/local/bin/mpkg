@@ -13,16 +13,16 @@ if [[ -z $args ]]; then
 	$LIBRARY/binary/mpkg-manual
 	exit
 elif [[ $args == "-i" ]] || [[ $args == "--install" ]]; then
-	sudo /usr/local/bin/mpkg-install "$2" "$3" "$4" "$5" "$6"
+	sudo /usr/local/bin/mpkg-install "$pkg" "$3" "$4" "$5" "$6"
 	exit
 elif [[ $args == "-r" ]] || [[ $args == "--remove" ]]; then
-	sudo /usr/local/bin/mpkg-remove "$2" "$3"
+	sudo /usr/local/bin/mpkg-remove "$pkg" "$3"
 	exit
 elif [[ $args == "-h" ]] || [[ $args == "--help" ]]; then
 	$LIBRARY/binary/mpkg-manual
 	exit
 elif [[ $args == "-b" ]] || [[ $args == "--block-remove" ]]; then
-	sudo /usr/local/bin/mpkg-blockremove "$2" "$3"
+	sudo /usr/local/bin/mpkg-blockremove "$pkg" "$3"
 elif [[ $args == "--force-unlock" ]]; then
 	echo "Forcing mpkg unlock..."
 	sudo rm $LIBRARY/lock
@@ -33,16 +33,16 @@ elif [[ $args == "-v" ]] || [[ $args == "--version" ]]; then
 	echo "Version "$(<$LIBRARY/db/mpkg/version)
 	exit
 elif [[ $args == "-p" ]] || [[ $args == "--package-inspect" ]]; then
-	/usr/local/bin/mpkg-grabinfo "$2"
+	/usr/local/bin/mpkg-grabinfo "$pkg"
 elif [[ $args == "-l" ]] || [[ $args == "--list" ]]; then
 	ls $LIBRARY/db
 	exit
 elif [[ $args == "-m" ]] || [[ $args == "--make" ]]; then
-	/usr/local/bin/mpkg-make "$2" "$3" "$4"
+	/usr/local/bin/mpkg-make "$pkg" "$3" "$4"
 elif [[ $args == "-c" ]] || [[ $args == "--create" ]]; then
-	/usr/local/bin/mpkg-create "$2"
+	/usr/local/bin/mpkg-create "$pkg"
 elif [[ $args == "-d" ]] || [[ $args == "--deploy" ]]; then
-	sudo /usr/local/bin/mpkg-deploy $USER "$2" "$3" "$4"
+	sudo /usr/local/bin/mpkg-deploy $USER "$pkg" "$3" "$4"
 elif [[ $args == "--upgrade" ]]; then
 	sudo /usr/local/bin/mpkg-upgrade
 else

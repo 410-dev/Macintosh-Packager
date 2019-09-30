@@ -1,4 +1,5 @@
 #!/bin/bash
+ROOTFS="/"
 LIBRARY=$ROOTFS"usr/local/mpkglib"
 if [[ -z "$1" ]]; then
 	$LIBRARY/binary/mpkgcreate-manual

@@ -39,7 +39,7 @@ if [[ -z $(echo "$pkg"|grep ".mpack") ]]; then
 		exit
 	fi
 else
-	echo "Locking mpkg..."
+	echo "Locking library..."
 	sudo touch $LIBRARY/lock
 	echo "Deploying..."
 	if [ ! -e $LIBRARY/temp ]; then

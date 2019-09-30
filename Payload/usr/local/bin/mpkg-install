@@ -118,7 +118,7 @@ if [[ -z $(echo "$pkg"|grep ".mpack") ]]; then
 		exit
 	fi
 else
-	echo "Locking mpkg..."
+	echo "Locking library..."
 	sudo touch $LIBRARY/lock
 	echo "Unpacking..."
 	if [ ! -e $LIBRARY/temp ]; then
@@ -311,14 +311,14 @@ if [[ -e $LIBRARY/convert_failed ]]; then
 	echo -e "${YEL}Warning! DEPRICATED DATABASE CONVERSION FAILED.${NC}"
 fi
 if [[ $3 == "--target" ]]; then
-	echo -e "${YEL}WARNING:${NC} Temporarily unlocking mpkg for subprocess..."
+	echo -e "${YEL}WARNING:${NC} Temporarily unlocking library for subprocess..."
 	sudo rm $LIBRARY/lock
 	sudo mpkg -b $(<$LIBRARY/temp/Info/pkgid) -y
 	echo "Relocking..."
 	sudo touch $LIBRARY/lock
 	sudo rm $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/unremovable
 elif [[ $4 == "--usertarget" ]]; then
-	echo -e "${YEL}WARNING:${NC} Temporarily unlocking mpkg for subprocess..."
+	echo -e "${YEL}WARNING:${NC} Temporarily unlocking library for subprocess..."
 	sudo rm $LIBRARY/lock
 	sudo mpkg -b $(<$LIBRARY/temp/Info/pkgid) -y
 	echo "Relocking..."

@@ -7,3 +7,7 @@ Version 7.1.2 Darwin
 Modified:
 - Fixed several bugs
 - Refactored codes
+
+Version 7.1.3 Darwin
+Modified:
+- Create cache folder automatically

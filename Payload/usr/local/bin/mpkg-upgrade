@@ -27,5 +27,6 @@ else
 fi
 echo "Cleaning up..."
 sudo rm -r $LIBRARY/cache
+sudo mkdir $LIBRARY/cache
 echo -e "${GRN}Done.${NC}"
 exit

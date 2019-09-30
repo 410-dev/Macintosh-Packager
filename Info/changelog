@@ -2,3 +2,8 @@ Version 7.1.1 Darwin
 Added:
 - Upgrade feature
 - MPKG-SE Supporting Library
+
+Version 7.1.2 Darwin
+Modified:
+- Fixed several bugs
+- Refactored codes

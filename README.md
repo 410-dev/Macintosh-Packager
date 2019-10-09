@@ -1,5 +1,19 @@
-# MacintoshPackager
+# Macintosh Packager
 Macintosh Packager - DPKG Alternative
+
+Notice (2019-10-09): I'm currently developing version 8.0, which will be one of the biggest upgrade since the first release. So I'm expecting that it would take a long time to finish 8.0, so there will be several beta releases before the stable release of 8.0. To access beta, you need two packages installed: mpkg beta access preference setups & mpkg8's upgrading utility.
+
+
+
+You may click [here](https://github.com/HTTP410GONE/Macintosh-Packages/raw/master/mpkg-beta.mpack) to download beta access preference setups, or you may type:
+
+``sudo net mpkg-beta``
+
+
+
+To upgrade to the mpkg8 upgrading tool, type the following:
+
+``sudo net mpkg8upgrader; sudo m8u --upgrade=upgrader; sudo mpkg --upgrade``
 
 ## How to install
 Paste these commands to Terminal.
@@ -10,6 +24,10 @@ FOR macOS:
 ~~FOR Linux: ~~
 ~~```curl -Ls https://raw.githubusercontent.com/HTTP410GONE/MacintoshPackager/master/net-linux-live -o ~/netlive; chmod +x ~/netlive; sudo ~/netlive```~~
 Linux is no longer supported. Final release of Linux Support is 5.3 Duo.
+
+
+
+macOS Live Installer will no loger install the latest version directly (Live installer will not be updated). The command will automatically run upgrading tool.
 
 
 ## MPACK repo

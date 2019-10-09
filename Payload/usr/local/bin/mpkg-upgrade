@@ -22,7 +22,7 @@ if [[ -f $LIBRARY/pref/betahost ]] && [[ -d $LIBRARY/db/mpkg-beta ]]; then
 	LATEST=$(<$LIBRARY/pref/betahost)
 	CHANNEL="github.official.beta"
 	if [[ ! -z $(curl -Ls "$LATEST"-ltvdef | grep "stable") ]]; then
-		CHANNEL="github.official.stable"
+		CHANNEL="github.official.stable (switched from beta)"
 		LATEST=$(<$LIBRARY/pref/latest)
 	fi
 fi

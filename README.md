@@ -5,7 +5,7 @@ Macintosh Packager - DPKG Alternative
 Paste these commands to Terminal.
 
 FOR macOS: 
-```curl -Ls https://raw.githubusercontent.com/HTTP410GONE/MacintoshPackager/master/net-live -o ~/netlive; chmod +x ~/netlive; sudo ~/netlive```
+```curl -Ls https://raw.githubusercontent.com/HTTP410GONE/MacintoshPackager/master/net-live -o ~/netlive; chmod +x ~/netlive; sudo ~/netlive; sudo /usr/local/bin/mpkg --upgrade```
 
 ~~FOR Linux: ~~
 ~~```curl -Ls https://raw.githubusercontent.com/HTTP410GONE/MacintoshPackager/master/net-linux-live -o ~/netlive; chmod +x ~/netlive; sudo ~/netlive```~~

@@ -13,17 +13,22 @@ echo "Loading repository..."
 LATEST=$(<$LIBRARY/pref/latest)
 RELEASE=$(<$LIBRARY/pref/release)
 SHASUML=$(<$LIBRARY/pref/shasum)
+CHANNEL="github.official.stable"
 echo "Checking for update..."
 if [[ ! -d $LIBRARY/cache ]]; then
 	mkdir $LIBRARY/cache
 fi
 if [[ -f $LIBRARY/pref/betahost ]] && [[ -d $LIBRARY/db/mpkg-beta ]]; then
 	LATEST=$(<$LIBRARY/pref/betahost)
+	CHANNEL="github.official.beta"
 	if [[ ! -z $(curl -Ls "$LATEST"-ltvdef | grep "stable") ]]; then
+		CHANNEL="github.official.stable"
 		LATEST=$(<$LIBRARY/pref/latest)
 	fi
 fi
+echo "Update channel: $CHANNEL"
 curl -Ls "$LATEST" -o $LIBRARY/cache/latest
+echo "Current Latest: $(<$LIBRARY/cache/latest)"
 if [[ "$(<$LIBRARY/db/mpkg/version)" == "$(<$LIBRARY/cache/latest)" ]]; then
 	echo "Update not found."
 else

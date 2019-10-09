@@ -12,9 +12,16 @@ NC='\033[0m'
 echo "Loading repository..."
 LATEST=$(<$LIBRARY/pref/latest)
 RELEASE=$(<$LIBRARY/pref/release)
+SHASUML=$(<$LIBRARY/pref/shasum)
 echo "Checking for update..."
 if [[ ! -d $LIBRARY/cache ]]; then
 	mkdir $LIBRARY/cache
+fi
+if [[ -f $LIBRARY/pref/betahost ]] && [[ -d $LIBRARY/db/mpkg-beta ]]; then
+	LATEST=$(<$LIBRARY/pref/betahost)
+	if [[ ! -z $(curl -Ls "$LATEST"-ltvdef | grep "stable") ]]; then
+		LATEST=$(<$LIBRARY/pref/latest)
+	fi
 fi
 curl -Ls "$LATEST" -o $LIBRARY/cache/latest
 if [[ "$(<$LIBRARY/db/mpkg/version)" == "$(<$LIBRARY/cache/latest)" ]]; then
@@ -22,8 +29,14 @@ if [[ "$(<$LIBRARY/db/mpkg/version)" == "$(<$LIBRARY/cache/latest)" ]]; then
 else
 	echo "Downloading update: $(<$LIBRARY/cache/latest)"
 	curl -Ls "$RELEASE/$(<$LIBRARY/cache/latest)/mpkg_$(<$LIBRARY/cache/latest)_darwin64.mpack" -o $LIBRARY/cache/update.mpack
-	echo "Installing update!"
-	sudo /usr/local/bin/mpkg-install $LIBRARY/cache/update.mpack
+	echo "Verifying update: update.mpack"
+	cd $LIBRARY/cache/
+	if [[ ! -z $(echo $(curl -Ls "$SHASUML") | shasum -a 256 --check | grep "OK") ]]; then
+		echo "Installing update!"
+		sudo /usr/local/bin/mpkg-install $LIBRARY/cache/update.mpack
+	else
+		echo "Failed verifying update."
+	fi
 fi
 echo "Cleaning up..."
 sudo rm -r $LIBRARY/cache

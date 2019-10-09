@@ -2,6 +2,9 @@
 pkg=$1
 ROOTFS="/"
 LIBRARY="/usr/local/mpkglib"
+LIST=$LIBRARY/cache/selectedPKGList
+longarg="$1 $2 $3 $4 $5 $6 $7"
+
 RED='\033[0;31m'
 GRN='\033[0;32m'
 YEL='\033[0;33m'
@@ -12,7 +15,9 @@ if [ "$EUID" -ne 0 ]; then
  	exit
 fi 
 if [[ -z "$pkg" ]]; then
-	echo -e "${RED}Error: (35)${NC} No package specified!${NC}"
+		if [[ -z $(echo $longarg | grep "--pkgsAreFromSelected") ]]; then
+		echo -e "${RED}Error: (35)${NC} No package specified!${NC}"
+	fi
 	exit
 fi
 if [[ "$pkg" == "mpkg" ]]; then
@@ -26,6 +31,7 @@ if [[ -z $(ls $LIBRARY/db | grep "$pkg") ]]; then
 	echo "Type mpkg -l to see the installed packages."
 	exit
 fi
+echo "Removing: $pkg"
 echo "Locking library..."
 sudo touch $LIBRARY/lock
 if [[ "$2" == "--ignore-dependency" ]]; then

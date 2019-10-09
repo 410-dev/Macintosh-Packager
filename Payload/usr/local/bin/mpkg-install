@@ -2,9 +2,11 @@
 pkg=$1
 ROOTFS="/"
 LIBRARY="/usr/local/mpkglib"
+LIST=$LIBRARY/cache/selectedPKGList
 SEDLIB="\\/usr\\/local\\/mpkglib\\/temp\\/Payload\\/"
 target="/"
 userpayloadtarget="nil"
+longarg="$1 $2 $3 $4 $5 $6 $7"
 
 RED='\033[0;31m'
 GRN='\033[0;32m'
@@ -93,7 +95,9 @@ if [ "$EUID" -ne 0 ]; then
  	exit
 fi
 if [[ -z "$pkg" ]]; then
-	echo -e "${RED}Error: (35)${NC} No package specified!${NC}"
+	if [[ -z $(echo $longarg | grep "--pkgsAreFromSelected") ]]; then
+		echo -e "${RED}Error: (35)${NC} No package specified!${NC}"
+	fi
 	exit
 fi
 if [[ ! -e "$pkg" ]]; then
@@ -106,16 +110,17 @@ if [[ -e $LIBRARY/lock ]]; then
 fi
 if [[ -z $(echo "$pkg"|grep ".mpack") ]]; then
 	if [[ -z $(echo "$pkg"|grep ".mp") ]]; then
-		if [[ -e $LIBRARY/binary/LegacyPackageCompatibilityLayer ]]; then
-			sudo LegacyPackageCompatibilityLayer -i $pkg $3
-			exit
-		else
-			echo -e "${RED}Error: ${NC}This package requires mpkg <= 3.1 (Relatively unstable) installed.${NC}"
-			exit
-		fi
-	else
 		echo -e "${RED}Error: (36)${NC} It is not a mpkg package!${NC}"
 		exit
+	else
+		echo -e "${YEL}WARNING: ${NC}This package is depricated. Would you still install? y/n"
+		read yn
+		if [[ $yn == "y" ]] || [[ $yn == "Y" ]]; then
+			echo "Installing old package type.."
+		else
+			echo "Aborted."
+			exit
+		fi 
 	fi
 else
 	echo "Locking library..."
@@ -188,6 +193,13 @@ elif [[ ! -e $LIBRARY/temp/Info/pkgid ]]; then
 fi
 if [[ ! -e $LIBRARY/temp/Payload ]]; then
 	echo -e "${RED}Error: (39)${NC} Package Corruption (No payload). Unable to continue.${NC}"
+	sudo rm -r $LIBRARY/temp
+	sudo rm $LIBRARY/lock
+	exit
+fi
+if [[ -e $LIBRARY/temp/Info/unremovable ]]; then
+	echo -e "${YEL}WARNING: ${NC}Unremovable flag is included in the package."
+	echo -e "${RED}SECURITY: (1)${NC} Package seems not safe. Please do not install this package."
 	sudo rm -r $LIBRARY/temp
 	sudo rm $LIBRARY/lock
 	exit
@@ -326,31 +338,32 @@ elif [[ $4 == "--usertarget" ]]; then
 	sudo rm $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/unremovable
 fi
 echo -e "${GRN}Done: ${NC}Finished installing:" $(<$LIBRARY/temp/Info/pkgname) $(<$LIBRARY/temp/Info/version)"${NC}"
-if [[ -e $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/depends ]]; then
-	if [[ ! -z $(cat $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/depends | grep "com.zeone.osxsubstrate") ]]; then
-		echo -e "${YEL}${YEL}WARNING:${NC} Requires Substrate Hookup."
-		if [[ -z $(ls $LIBRARY/db | grep "com.zeone.osxsubstrate") ]]; then
-			echo -e "${RED}Error: Substrate is not installed!${NC}"
-			echo -e "${YEL}This package has to be removed.${NC}"
-			echo "Uninstalling..."
-			if [[ -e $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/prerm.sh ]]; then
-				echo "Running prerm..."
-				$LIBRARY/db/"$pkg"/prerm.sh
-			fi
-			echo "Removing data..."
-			sudo rm -r $(<$LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files)
-			if [[ -e $LIBRARY/db/"$pkg"/postrm.sh ]]; then
-				echo "Running postrm..."
-				$LIBRARY/db/"$pkg"/postrm.sh
-			fi
-			echo "Removing control..."
-			removalID=$(<$LIBRARY/temp/Info/pkgid)
-			sudo rm -r $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)
-		else
-			echo "Reloading substrate database..."
-			/usr/local/substratelib/substrate --reload
-			echo -e "${GRN}Done.${NC}"
+if [[ -e $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/trigger_binary ]] && [[ -e $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/trigger_package ]]; then
+	echo -e "${YEL}${YEL}WARNING:${NC} Requires trigger."
+	if [[ -z $(ls $LIBRARY/db | grep $(<$LIBRARY/db/"$LIBRARY/temp/Info/pkgid)/trigger_package")) ]]; then
+		echo -e "${RED}Error: Trigger package is not installed!${NC}"
+		echo -e "${YEL}This package has to be removed.${NC}"
+		echo "Uninstalling..."
+		if [[ -e $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/prerm.sh ]]; then
+			echo "Running prerm..."
+			$LIBRARY/db/"$pkg"/prerm.sh
 		fi
+		echo "Removing data..."
+		sudo rm -r $(<$LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files)
+		if [[ -e $LIBRARY/db/"$pkg"/postrm.sh ]]; then
+			echo "Running postrm..."
+			$LIBRARY/db/"$pkg"/postrm.sh
+		fi
+		echo "Removing control..."
+		removalID=$(<$LIBRARY/temp/Info/pkgid)
+		sudo rm -r $LIBRARY/temp
+		sudo rm $LIBRARY/lock
+		sudo rm -r $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)
+		exit
+	else
+		echo "Triggering $(<$LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/trigger_package)..."
+		sudo "$LIBRARY/temp/Info/pkgid)/trigger_binary" --reload
+		echo -e "${GRN}Done.${NC}"
 	fi
 fi
 if [[ -e $LIBRARY/temp/Info/changelog ]]; then

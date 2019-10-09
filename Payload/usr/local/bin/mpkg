@@ -3,13 +3,29 @@ args=$1
 pkg=$2
 ROOTFS="/"
 LIBRARY="/usr/local/mpkglib"
+LIST=$LIBRARY/cache/selectedPKGList
 
 RED='\033[0;31m'
 GRN='\033[0;32m'
 YEL='\033[0;33m'
 BLU='\033[0;34m'
 NC='\033[0m'
-if [[ -z $args ]]; then
+if [[ "$pkg" == ":selected" ]]; then
+	declare -i loopset=$(wc -l < $LIST)
+	declare -i loopProgress=0
+	echo "Total selected:" $loopset
+	while [[ $loopset -gt $loopProgress ]]; do
+		loopProgress=$(( $loopProgress + 1 ))
+		if [[ $args == "-i" ]] || [[ $args == "--install" ]]; then
+			sudo /usr/local/bin/mpkg-install "$(awk -v line=$loopProgress 'NR==line' $LIST)" "$3" "$4" "$5" "$6" "--pkgsAreFromSelected"
+		elif [[ $args == "-r" ]] || [[ $args == "--remove" ]]; then
+			sudo /usr/local/bin/mpkg-remove "$(awk -v line=$loopProgress 'NR==line' $LIST)" "$3" "--pkgsAreFromSelected"
+		elif [[ $args == "-b" ]] || [[ $args == "--block-remove" ]]; then
+			sudo /usr/local/bin/mpkg-blockremove "$(awk -v line=$loopProgress 'NR==line' $LIST)" "--pkgsAreFromSelected"
+		fi
+	done
+	mpkg-select "--clear"
+elif [[ -z $args ]]; then
 	$LIBRARY/binary/mpkg-manual
 	exit
 elif [[ $args == "-i" ]] || [[ $args == "--install" ]]; then
@@ -40,11 +56,13 @@ elif [[ $args == "-l" ]] || [[ $args == "--list" ]]; then
 elif [[ $args == "-m" ]] || [[ $args == "--make" ]]; then
 	/usr/local/bin/mpkg-make "$pkg" "$3" "$4"
 elif [[ $args == "-c" ]] || [[ $args == "--create" ]]; then
-	/usr/local/bin/mpkg-create "$pkg"
+	/usr/local/bin/mpkg-create "$pkg" "$3"
 elif [[ $args == "-d" ]] || [[ $args == "--deploy" ]]; then
 	sudo /usr/local/bin/mpkg-deploy $USER "$pkg" "$3" "$4"
 elif [[ $args == "--upgrade" ]]; then
 	sudo /usr/local/bin/mpkg-upgrade
+elif [[ $args == "select" ]]; then
+	sudo /usr/local/bin/mpkg-select $2 $3 $4 $5 $6 $7 $8 $9
 else
 	$LIBRARY/binary/mpkg-manual
 	exit

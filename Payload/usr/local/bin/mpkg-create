@@ -36,6 +36,8 @@ touch "$PTH"/Info/prerm.sh
 touch "$PTH"/Info/postrm.sh
 touch "$PTH"/Info/conflicts
 touch "$PTH"/Info/nodeploy
+touch "$PTH"/Info/trigger_package
+touch "$PTH"/Info/trigger_binary
 echo $2 > "$PTH"/Info/pkgname
 echo $2 > "$PTH"/Info/pkgid
 chmod +x "$PTH"/Info/*.sh

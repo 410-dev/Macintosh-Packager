@@ -28,7 +28,7 @@ if [[ ! -z $1 ]]; then
 		mv Payload.zip ../Payload.zip
 		cd ..
 		if [[ -e "$3"/userPayload ]]; then
-			echo -e "${BLU}userPayload detected...${NC}"
+			echo -e "${BLU}User's Payload detected...${NC}"
 			cd "$3"/userPayload
 			zip -rq userPayload.zip . -x ".*" -x "__MACOSX"
 			mv userPayload.zip ../userPayload.zip

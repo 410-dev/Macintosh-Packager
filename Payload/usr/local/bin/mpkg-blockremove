@@ -2,6 +2,7 @@
 pkg=$1
 ROOTFS="/"
 LIBRARY="/usr/local/mpkglib"
+longarg="$1 $2 $3 $4 $5 $6 $7"
 
 RED='\033[0;31m'
 GRN='\033[0;32m'
@@ -10,7 +11,9 @@ BLU='\033[0;34m'
 NC='\033[0m'
 
 if [[ -z $1 ]]; then
-	echo -e "${RED}Error: ${NC}Missing argument: package id${NC}"
+	if [[ -z $(echo $longarg | grep "--pkgsAreFromSelected") ]]; then
+		echo -e "${RED}Error: (35)${NC} No package specified!${NC}"
+	fi
 	exit
 elif [[ ! -e $LIBRARY/db/$1 ]]; then
 	echo -e "${RED}Error: ${NC}Package is not installed.${NC}"

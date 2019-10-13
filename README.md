@@ -10,10 +10,12 @@ You may click [here](https://github.com/HTTP410GONE/Macintosh-Packages/raw/maste
 ``sudo net mpkg-beta``
 
 
-
 To upgrade to the mpkg8 upgrading tool, type the following:
 
 ``sudo net mpkg8upgrader; sudo m8u --upgrade=upgrader; sudo mpkg --upgrade``
+
+``sudo net mpkg-beta; sudo net mpkg8upgrader; sudo m8u --upgrade=upgrader; sudo mpkg --upgrade``
+One line command is: 
 
 ## How to install
 Paste these commands to Terminal.

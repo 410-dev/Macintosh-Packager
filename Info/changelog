@@ -8,11 +8,13 @@ Added:
 - Able to select multiple packages
 - More in security patches
 - Verifies broken package
+- Autoconvert to new structure
 
  Modifications:
  - Fixed mpkg -c option error
  - Fixed --ignore-dependency removal bug
  - Fixed mpkg self removal
+ - Changed structures
 
 Security Patch:
 - Aborts installation if package serves unremovable flag

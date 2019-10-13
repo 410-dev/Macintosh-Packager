@@ -10,7 +10,7 @@ NC='\033[0m'
 
 if [[ $1 == "--clear" ]]; then
 	if [[ -e $LIST ]]; then
-		rm $LIST
+		sudo rm $LIST
 		echo -e "${GRN}Done${NC}: Cleared queue."
 	else
 		echo -e "${RED}Error${NC}: There was nothing in queue."

@@ -13,7 +13,9 @@ GRN='\033[0;32m'
 YEL='\033[0;33m'
 BLU='\033[0;34m'
 NC='\033[0m'
-
+if [[ -z $(csrutil status | grep "disabled") ]]; then
+	echo "${YEL}WARNING: ${NC}System Integrity Protection is enabled. Some files may not be copied."
+fi
 if [[ $2 == "--target" ]]; then
 	if [[ -z $3 ]]; then
 		echo -e "${RED}Error: ${NC}Missing target path.${NC}"
@@ -108,6 +110,7 @@ if [[ -e $LIBRARY/lock ]]; then
 	echo -e "${RED}Error: (00) ${NC}MPKG LOCKED${NC}"
 	exit
 fi
+FORMAT="mpack"
 if [[ -z $(echo "$pkg"|grep ".mpack") ]]; then
 	if [[ -z $(echo "$pkg"|grep ".mp") ]]; then
 		echo -e "${RED}Error: (36)${NC} It is not a mpkg package!${NC}"
@@ -117,6 +120,7 @@ if [[ -z $(echo "$pkg"|grep ".mpack") ]]; then
 		read yn
 		if [[ $yn == "y" ]] || [[ $yn == "Y" ]]; then
 			echo "Installing old package type.."
+			FORMAT="mp"
 		else
 			echo "Aborted."
 			exit
@@ -134,13 +138,19 @@ else
 		sudo mkdir $LIBRARY/temp
 	fi
 	cp "$pkg" $LIBRARY/temp/
-	if [ ! -e $LIBRARY/temp/*.mpack ]; then
+	if [ ! -e $LIBRARY/temp/*.$FORMAT ]; then
 		echo -e "${RED}Error: (31) ${NC}Failed to unpack.${NC}"
 		sudo rm -r $LIBRARY/temp
 		sudo rm $LIBRARY/lock
 		exit
 	fi
-	mv $LIBRARY/temp/*.mpack $LIBRARY/temp/package.zip
+	mv $LIBRARY/temp/*.$FORMAT $LIBRARY/temp/package.zip
+	if [[ -z $(cat $LIBRARY/temp/package.zip | grep "Info.zip") ]]; then
+		echo -e "${RED}Error: (32) ${NC}Failed to unpack: Not an mpkg package${NC}"
+		sudo rm -r $LIBRARY/temp
+		sudo rm $LIBRARY/lock
+		exit
+	fi
 	unzip -qq $LIBRARY/temp/package.zip -d $LIBRARY/temp
 	if [ ! -e $LIBRARY/temp/Info.zip ]; then
 		echo -e "${RED}Error: (22)${NC} Package Corruption (No Control Cluster). Unable to continue.${NC}"

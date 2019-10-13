@@ -20,11 +20,9 @@ if [[ -z "$pkg" ]]; then
 	fi
 	exit
 fi
-if [[ "$pkg" == "mpkg" ]]; then
-	if [[ ! -z $(ls $LIBRARY/db) ]]; then
-		echo -e "${RED}Error: (62)${NC}There are packages that are need to be uninstalled first.${NC}"
-		exit
-	fi
+if [[ "$pkg" == "mpkg" ]] && [[ $2 -ne "@DoRemove" ]]; then
+	echo -e "${RED}Error: (62)${NC}Please use mpkg-erase to remove mpkg.${NC}"
+	exit
 fi
 if [[ -z $(ls $LIBRARY/db | grep "$pkg") ]]; then
 	echo -e "${RED}Error: ${NC}Package does not exist. Unable to remove.${NC}"

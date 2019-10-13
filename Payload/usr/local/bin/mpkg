@@ -62,7 +62,7 @@ elif [[ $args == "-d" ]] || [[ $args == "--deploy" ]]; then
 	sudo $BINARY/mpkg-deploy $USER "$pkg" "$3" "$4"
 elif [[ $args == "--upgrade" ]]; then
 	sudo $BINARY/mpkg-upgrade
-elif [[ $args == "select" ]]; then
+elif [[ $args == "--select" ]]; then
 	sudo $BINARY/mpkg-select $2 $3 $4 $5 $6 $7 $8 $9
 elif [[ $args == "fullmpkgerase" ]]; then
 	sudo $BINARY/mpkg-erase $2

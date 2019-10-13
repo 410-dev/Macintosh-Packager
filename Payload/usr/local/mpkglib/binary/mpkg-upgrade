@@ -12,7 +12,6 @@ NC='\033[0m'
 echo "Loading repository..."
 LATEST=$(<$LIBRARY/pref/latest)
 RELEASE=$(<$LIBRARY/pref/release)
-SHASUML=$(<$LIBRARY/pref/shasum)
 CHANNEL="github.official.stable"
 echo "Checking for update..."
 if [[ ! -d $LIBRARY/cache ]]; then

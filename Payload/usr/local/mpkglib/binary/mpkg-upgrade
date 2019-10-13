@@ -29,15 +29,15 @@ fi
 echo "Update channel: $CHANNEL"
 curl -Ls "$LATEST" -o $LIBRARY/cache/latest
 echo "Current Latest: $(<$LIBRARY/cache/latest)"
-#if [[ "$(<$LIBRARY/db/mpkg/version)" == "$(<$LIBRARY/cache/latest)" ]]; then
-#	echo "Update not found."
-#else
+if [[ "$(<$LIBRARY/db/mpkg/version)" == "$(<$LIBRARY/cache/latest)" ]]; then
+	echo "Update not found."
+else
 	echo "Downloading update: $(<$LIBRARY/cache/latest)"
 	curl -Ls "$RELEASE/$(<$LIBRARY/cache/latest)/mpkg_$(<$LIBRARY/cache/latest)_darwin64.mpack" -o $LIBRARY/cache/update.mpack
 	echo "Verifying update: update.mpack"
 	echo "Installing update!"
 	sudo /usr/local/bin/mpkg-install $LIBRARY/cache/update.mpack
-#fi
+fi
 echo "Cleaning up..."
 sudo rm -r $LIBRARY/cache
 sudo mkdir $LIBRARY/cache

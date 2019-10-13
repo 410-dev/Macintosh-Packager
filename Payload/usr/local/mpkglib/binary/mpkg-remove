@@ -15,12 +15,12 @@ if [ "$EUID" -ne 0 ]; then
  	exit
 fi 
 if [[ -z "$pkg" ]]; then
-		if [[ -z $(echo $longarg | grep "--pkgsAreFromSelected") ]]; then
+		if [[ -z $(echo $longarg | grep "@@@@pkgsAreFromSelected") ]]; then
 		echo -e "${RED}Error: (35)${NC} No package specified!${NC}"
 	fi
 	exit
 fi
-if [[ "$pkg" == "mpkg" ]] && [[ $2 -ne "@DoRemove" ]]; then
+if [[ "$pkg" == "mpkg" ]] && [[ $2 -ne "@selfremove" ]]; then
 	echo -e "${RED}Error: (62)${NC}Please use mpkg-erase to remove mpkg.${NC}"
 	exit
 fi

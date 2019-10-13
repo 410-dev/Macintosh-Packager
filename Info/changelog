@@ -7,11 +7,12 @@ Added:
  - Etc.
 - Able to select multiple packages
 - More in security patches
-- Checks SHA256 checksum when installing update
+- Verifies broken package
 
  Modifications:
  - Fixed mpkg -c option error
  - Fixed --ignore-dependency removal bug
+ - Fixed mpkg self removal
 
 Security Patch:
 - Aborts installation if package serves unremovable flag

@@ -3,6 +3,7 @@ args=$1
 pkg=$2
 ROOTFS="/"
 LIBRARY="/usr/local/mpkglib"
+BINARY=$LIBRARY"/binary"
 LIST=$LIBRARY/cache/selectedPKGList
 
 RED='\033[0;31m'
@@ -17,28 +18,28 @@ if [[ "$pkg" == ":selected" ]]; then
 	while [[ $loopset -gt $loopProgress ]]; do
 		loopProgress=$(( $loopProgress + 1 ))
 		if [[ $args == "-i" ]] || [[ $args == "--install" ]]; then
-			sudo /usr/local/bin/mpkg-install "$(awk -v line=$loopProgress 'NR==line' $LIST)" "$3" "$4" "$5" "$6" "--pkgsAreFromSelected"
+			sudo $BINARY/mpkg-install "$(awk -v line=$loopProgress 'NR==line' $LIST)" "$3" "$4" "$5" "$6" "@@@@pkgsAreFromSelected"
 		elif [[ $args == "-r" ]] || [[ $args == "--remove" ]]; then
-			sudo /usr/local/bin/mpkg-remove "$(awk -v line=$loopProgress 'NR==line' $LIST)" "$3" "--pkgsAreFromSelected"
+			sudo $BINARY/mpkg-remove "$(awk -v line=$loopProgress 'NR==line' $LIST)" "$3" "@@@@pkgsAreFromSelected"
 		elif [[ $args == "-b" ]] || [[ $args == "--block-remove" ]]; then
-			sudo /usr/local/bin/mpkg-blockremove "$(awk -v line=$loopProgress 'NR==line' $LIST)" "--pkgsAreFromSelected"
+			sudo $BINARY/mpkg-blockremove "$(awk -v line=$loopProgress 'NR==line' $LIST)" "@@@@pkgsAreFromSelected"
 		fi
 	done
-	mpkg-select "--clear"
+	$BINARY/mpkg-select "--clear"
 elif [[ -z $args ]]; then
-	$LIBRARY/binary/mpkg-manual
+	$BINARY/mpkg-manual
 	exit
 elif [[ $args == "-i" ]] || [[ $args == "--install" ]]; then
-	sudo /usr/local/bin/mpkg-install "$pkg" "$3" "$4" "$5" "$6"
+	sudo $BINARY/mpkg-install "$pkg" "$3" "$4" "$5" "$6"
 	exit
 elif [[ $args == "-r" ]] || [[ $args == "--remove" ]]; then
-	sudo /usr/local/bin/mpkg-remove "$pkg" "$3"
+	sudo $BINARY/mpkg-remove "$pkg" "$3"
 	exit
 elif [[ $args == "-h" ]] || [[ $args == "--help" ]]; then
-	$LIBRARY/binary/mpkg-manual
+	$BINARY/mpkg-manual
 	exit
 elif [[ $args == "-b" ]] || [[ $args == "--block-remove" ]]; then
-	sudo /usr/local/bin/mpkg-blockremove "$pkg" "$3"
+	sudo $BINARY/mpkg-blockremove "$pkg" "$3"
 elif [[ $args == "--force-unlock" ]]; then
 	echo "Forcing mpkg unlock..."
 	sudo rm $LIBRARY/lock
@@ -49,20 +50,22 @@ elif [[ $args == "-v" ]] || [[ $args == "--version" ]]; then
 	echo "Version "$(<$LIBRARY/db/mpkg/version)
 	exit
 elif [[ $args == "-p" ]] || [[ $args == "--package-inspect" ]]; then
-	/usr/local/bin/mpkg-grabinfo "$pkg"
+	$BINARY/mpkg-grabinfo "$pkg"
 elif [[ $args == "-l" ]] || [[ $args == "--list" ]]; then
 	ls $LIBRARY/db
 	exit
 elif [[ $args == "-m" ]] || [[ $args == "--make" ]]; then
-	/usr/local/bin/mpkg-make "$pkg" "$3" "$4"
+	$BINARY/mpkg-make "$pkg" "$3" "$4"
 elif [[ $args == "-c" ]] || [[ $args == "--create" ]]; then
-	/usr/local/bin/mpkg-create "$pkg" "$3"
+	$BINARY/mpkg-create "$pkg" "$3"
 elif [[ $args == "-d" ]] || [[ $args == "--deploy" ]]; then
-	sudo /usr/local/bin/mpkg-deploy $USER "$pkg" "$3" "$4"
+	sudo $BINARY/mpkg-deploy $USER "$pkg" "$3" "$4"
 elif [[ $args == "--upgrade" ]]; then
-	sudo /usr/local/bin/mpkg-upgrade
+	sudo $BINARY/mpkg-upgrade
 elif [[ $args == "select" ]]; then
-	sudo /usr/local/bin/mpkg-select $2 $3 $4 $5 $6 $7 $8 $9
+	sudo $BINARY/mpkg-select $2 $3 $4 $5 $6 $7 $8 $9
+elif [[ $args == "fullmpkgerase" ]]; then
+	sudo $BINARY/mpkg-erase $2
 else
 	$LIBRARY/binary/mpkg-manual
 	exit

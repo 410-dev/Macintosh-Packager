@@ -97,7 +97,7 @@ if [ "$EUID" -ne 0 ]; then
  	exit
 fi
 if [[ -z "$pkg" ]]; then
-	if [[ -z $(echo $longarg | grep "--pkgsAreFromSelected") ]]; then
+	if [[ -z $(echo $longarg | grep "@@@@pkgsAreFromSelected") ]]; then
 		echo -e "${RED}Error: (35)${NC} No package specified!${NC}"
 	fi
 	exit

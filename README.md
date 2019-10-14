@@ -14,8 +14,8 @@ To upgrade to the mpkg8 upgrading tool, type the following:
 
 ``sudo net mpkg8upgrader; sudo m8u --upgrade=upgrader; sudo mpkg --upgrade``
 
-``sudo net mpkg-beta; sudo net mpkg8upgrader; sudo m8u --upgrade=upgrader; sudo mpkg --upgrade``
 One line command is: 
+``sudo net mpkg-beta; sudo net mpkg8upgrader; sudo m8u --upgrade=upgrader; sudo mpkg --upgrade``
 
 ## How to install
 Paste these commands to Terminal.

@@ -5,16 +5,18 @@ Notice (2019-10-09): I'm currently developing version 8.0, which will be one of 
 
 
 
-You may click [here](https://github.com/HTTP410GONE/Macintosh-Packages/raw/master/mpkg-beta.mpack) to download beta access preference setups, or you may type:
+You may click [here](https://github.com/HTTP410GONE/Macintosh-Packages/raw/master/mpkg-beta.mpack) to download beta access preference setups, or you may type (mpkg8):
 
 ``sudo net mpkg-beta``
 
 
-To upgrade to the mpkg8 upgrading tool, type the following:
+To install the mpkg8 upgrading tool to mpkg7, type the following:
 
 ``sudo net mpkg8upgrader; sudo m8u --upgrade=upgrader; sudo mpkg --upgrade``
 
+
 One line command is: 
+
 ``sudo net mpkg-beta; sudo net mpkg8upgrader; sudo m8u --upgrade=upgrader; sudo mpkg --upgrade``
 
 ## How to install

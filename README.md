@@ -1,29 +1,19 @@
 # Macintosh Packager
 Macintosh Packager - DPKG Alternative
 
-Notice (2019-10-09): I'm currently developing version 8.0, which will be one of the biggest upgrade since the first release. So I'm expecting that it would take a long time to finish 8.0, so there will be several beta releases before the stable release of 8.0. To access beta, you need two packages installed: mpkg beta access preference setups & mpkg8's upgrading utility.
+Notice (2019-10-09): I'm currently developing version 8.0, which will be one of the biggest upgrade since the first release. So I'm expecting that it would take a long time to finish 8.0, so there will be several beta releases before the stable release of 8.0. To access beta, you need mpkg beta access channel installed.
 
 
 
-You may click [here](https://github.com/HTTP410GONE/Macintosh-Packages/raw/master/mpkg-beta.mpack) to download beta access preference setups, or you may type (mpkg8):
+You may click [here](https://github.com/HTTP410GONE/Macintosh-Packages/raw/master/mpkg-beta.mpack) to download beta access channel, or you may type:
 
 ``sudo net mpkg-beta``
-
-
-To install the mpkg8 upgrading tool to mpkg7, type the following:
-
-``sudo net mpkg8upgrader; sudo m8u --upgrade=upgrader; sudo mpkg --upgrade``
-
-
-One line command is: 
-
-``sudo net mpkg-beta; sudo net mpkg8upgrader; sudo m8u --upgrade=upgrader; sudo mpkg --upgrade``
 
 ## How to install
 Paste these commands to Terminal.
 
 FOR macOS: 
-```curl -Ls https://raw.githubusercontent.com/HTTP410GONE/MacintoshPackager/master/net-live -o ~/netlive; chmod +x ~/netlive; sudo ~/netlive; sudo /usr/local/bin/mpkg --upgrade```
+```curl -Ls https://raw.githubusercontent.com/410-dev/Macintosh-Packager/master/net-live -o ~/netlive; chmod +x ~/netlive; sudo ~/netlive; sudo /usr/local/bin/mpkg --upgrade```
 
 ~~FOR Linux: ~~
 ~~```curl -Ls https://raw.githubusercontent.com/HTTP410GONE/MacintoshPackager/master/net-linux-live -o ~/netlive; chmod +x ~/netlive; sudo ~/netlive```~~

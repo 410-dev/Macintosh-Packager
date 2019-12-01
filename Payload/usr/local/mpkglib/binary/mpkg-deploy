@@ -17,17 +17,17 @@ if [[ -z "$pkg" ]]; then
 	echo -e "${RED}Error: (35)${NC} No package specified!${NC}"
 	exit
 fi
-if [[ ! -e "$pkg" ]]; then
+if [[ ! -f "$pkg" ]]; then
 	echo -e "${RED}Error: (30)${NC} No such package found!${NC}"
 	exit
 fi
-if [[ -e $LIBRARY/lock ]]; then
+if [[ -f $LIBRARY/lock ]]; then
 	echo -e "${RED}Error: (00) ${NC}MPKG LOCKED${NC}"
 	exit
 fi
 if [[ -z $(echo "$pkg"|grep ".mpack") ]]; then
 	if [[ -z $(echo "$pkg"|grep ".mp") ]]; then
-		if [[ -e $LIBRARY/binary/LegacyPackageCompatibilityLayer ]]; then
+		if [[ -f $LIBRARY/binary/LegacyPackageCompatibilityLayer ]]; then
 			sudo LegacyPackageCompatibilityLayer -i $pkg $3
 			exit
 		else
@@ -42,7 +42,7 @@ else
 	echo "Locking library..."
 	sudo touch $LIBRARY/lock
 	echo "Deploying..."
-	if [ ! -e $LIBRARY/temp ]; then
+	if [ ! -d $LIBRARY/temp ]; then
 		sudo mkdir $LIBRARY/temp
 	else
 		echo -e "${YEL}WARNING: ${NC}It seems last process uncleanly finished...${NC}"
@@ -50,7 +50,7 @@ else
 		sudo mkdir $LIBRARY/temp
 	fi
 	cp "$pkg" $LIBRARY/temp/
-	if [ ! -e $LIBRARY/temp/*.mpack ]; then
+	if [ ! -f $LIBRARY/temp/*.mpack ]; then
 		echo -e "${RED}Error: (31) ${NC}Failed to unpack.${NC}"
 		sudo rm -r $LIBRARY/temp
 		sudo rm $LIBRARY/lock
@@ -58,13 +58,13 @@ else
 	fi
 	mv $LIBRARY/temp/*.mpack $LIBRARY/temp/package.zip
 	unzip -qq $LIBRARY/temp/package.zip -d $LIBRARY/temp
-	if [ ! -e $LIBRARY/temp/Info.zip ]; then
+	if [ ! -f $LIBRARY/temp/Info.zip ]; then
 		echo -e "${RED}Error: (22)${NC} Package Corruption (No Control Cluster). Unable to continue.${NC}"
 		sudo rm -r $LIBRARY/temp
 		sudo rm $LIBRARY/lock
 		exit
 	fi
-	if [ ! -e $LIBRARY/temp/Payload.zip ]; then
+	if [ ! -f $LIBRARY/temp/Payload.zip ]; then
 		echo -e "${RED}Error: (23)${NC} Package Corruption (No Payload). Unable to continue.${NC}"
 		sudo rm -r $LIBRARY/temp
 		sudo rm $LIBRARY/lock
@@ -73,7 +73,7 @@ else
 	mkdir $LIBRARY/temp/Info
 	unzip -qq $LIBRARY/temp/Info.zip -d $LIBRARY/temp/Info
 fi
-if [[ -e $LIBRARY/temp/Info/nodeploy ]]; then
+if [[ -f $LIBRARY/temp/Info/nodeploy ]]; then
 	nodeploy=$(<$LIBRARY/temp/Info/nodeploy)
 	if [[ ! -z $(echo $nodeploy | grep "yes") ]]; then
 		echo -e "${RED}Error: ${NC}Deployment is not allowed."
@@ -84,11 +84,11 @@ if [[ -e $LIBRARY/temp/Info/nodeploy ]]; then
 fi
 mkdir $LIBRARY/temp/Payload
 unzip -qq $LIBRARY/temp/Payload.zip -d $LIBRARY/temp/Payload
-if [[ -e $LIBRARY/temp/userPayload.zip ]]; then
+if [[ -f $LIBRARY/temp/userPayload.zip ]]; then
 	mkdir $LIBRARY/temp/userPayload
 	unzip -qq $LIBRARY/temp/userPayload.zip -d $LIBRARY/temp/userPayload
 fi
-if [[ ! -e $LIBRARY/temp/Info/pkgid ]]; then
+if [[ ! -f $LIBRARY/temp/Info/pkgid ]]; then
 	echo -e "${RED}Error: (38)${NC} Package Corruption (No PI control). Unable to continue.${NC}"
 	sudo rm -r $LIBRARY/temp
 	sudo rm $LIBRARY/lock
@@ -104,7 +104,7 @@ else
 fi
 TARGDIR=$3/$(<$LIBRARY/temp/Info/pkgid)
 cp -r $LIBRARY/temp/Payload $TARGDIR
-if [[ -e $LIBRARY/temp/userPayload ]]; then
+if [[ -d $LIBRARY/temp/userPayload ]]; then
 	cp -r $LIBRARY/temp/userPayload $TARGDIR
 fi
 if [[ $4 == "--with-control" ]]; then

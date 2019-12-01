@@ -7,20 +7,22 @@ SEDLIB="\\/usr\\/local\\/mpkglib\\/temp\\/Payload\\/"
 target="/"
 userpayloadtarget="nil"
 longarg="$1 $2 $3 $4 $5 $6 $7"
+FASTSCRIPT="NO"
 
 RED='\033[0;31m'
 GRN='\033[0;32m'
 YEL='\033[0;33m'
 BLU='\033[0;34m'
+GRY='\033[0;90m'
 NC='\033[0m'
 if [[ -z $(csrutil status | grep "disabled") ]]; then
-	echo "${YEL}WARNING: ${NC}System Integrity Protection is enabled. Some files may not be copied."
+	echo -e "${YEL}WARNING: ${NC}System Integrity Protection is enabled. Some files may not be copied."
 fi
 if [[ $2 == "--target" ]]; then
 	if [[ -z $3 ]]; then
 		echo -e "${RED}Error: ${NC}Missing target path.${NC}"
 		exit
-	elif [[ ! -e $3 ]]; then
+	elif [[ ! -d $3 ]]; then
 		echo -e "${RED}Error: ${NC}Target does not exists.${NC}"
 		exit
 	elif [[ -z $(file $3 | grep ": directory") ]]; then
@@ -35,7 +37,7 @@ if [[ $4 == "--usertarget" ]]; then
 	if [[ -z $5 ]]; then
 		echo -e "${RED}Error:${NC} Missing target path.${NC}"
 		exit
-	elif [[ ! -e $5 ]]; then
+	elif [[ ! -d $5 ]]; then
 		echo -e "${RED}Error:${NC} Target does not exists.${NC}"
 		exit
 	elif [[ -z $(file $5 | grep ": directory") ]]; then
@@ -48,7 +50,7 @@ if [[ $4 == "--usertarget" ]]; then
 fi
 function dependencyCheck() {
 	echo "Checking for dependencies..."
-	if [[ -e $LIBRARY/temp/Info/depends ]]; then
+	if [[ -f $LIBRARY/temp/Info/depends ]]; then
 		echo -e "${YEL}WARNING: ${NC}This package depends: "$(cat $LIBRARY/temp/Info/depends)"${NC}"
 		declare -i loopset=$(wc -l < $LIBRARY/temp/Info/depends)
 		declare -i loopProgress=0
@@ -69,7 +71,7 @@ function dependencyCheck() {
 
 function conflictCheck() {
 	echo "Checking for conflicts..."
-	if [[ -e $LIBRARY/temp/Info/conflicts ]]; then
+	if [[ -f $LIBRARY/temp/Info/conflicts ]]; then
 		echo -e "${YEL}WARNING: ${NC}This package conflicts: "$(cat $LIBRARY/temp/Info/conflicts)"${NC}"
 		declare -i loopset=$(wc -l < $LIBRARY/temp/Info/conflicts)
 		declare -i loopProgress=0
@@ -88,7 +90,7 @@ function conflictCheck() {
 	fi
 }
 
-if [[ -e $LIBRARY/convert_failed ]]; then
+if [[ -f $LIBRARY/convert_failed ]]; then
 	echo -e "${YEL}WARNING:${NC} DEPRICATED DATABASE CONVERSION FAILED.${NC}"
 fi
 echo "Running Macintosh Packager..."
@@ -102,11 +104,11 @@ if [[ -z "$pkg" ]]; then
 	fi
 	exit
 fi
-if [[ ! -e "$pkg" ]]; then
+if [[ ! -f "$pkg" ]]; then
 	echo -e "${RED}Error: (30)${NC} No such package found!${NC}"
 	exit
 fi
-if [[ -e $LIBRARY/lock ]]; then
+if [[ -f $LIBRARY/lock ]]; then
 	echo -e "${RED}Error: (00) ${NC}MPKG LOCKED${NC}"
 	exit
 fi
@@ -158,16 +160,19 @@ else
 		sudo rm $LIBRARY/lock
 		exit
 	fi
-	if [ ! -e $LIBRARY/temp/Payload.zip ]; then
+	mkdir $LIBRARY/temp/Info
+	unzip -qq $LIBRARY/temp/Info.zip -d $LIBRARY/temp/Info
+	if [[ -f $LIBRARY/temp/Info/fastscript ]]; then
+		FASTSCRIPT="YES"
+		echo "Fastscript package detected..."
+	elif [ ! -e $LIBRARY/temp/Payload.zip ]; then
 		echo -e "${RED}Error: (23)${NC} Package Corruption (No Payload). Unable to continue.${NC}"
 		sudo rm -r $LIBRARY/temp
 		sudo rm $LIBRARY/lock
 		exit
 	fi
-	mkdir $LIBRARY/temp/Info
-	unzip -qq $LIBRARY/temp/Info.zip -d $LIBRARY/temp/Info
 fi
-if [[ -e $LIBRARY/temp/Info/os-architecture ]]; then
+if [[ -f $LIBRARY/temp/Info/os-architecture ]]; then
 	ARCHITECTURE=$(<$LIBRARY/temp/Info/os-architecture)
 	if [[ -z $(uname | grep $ARCHITECTURE) ]]; then
 		echo -e "${RED}Error: (40)${NC} OS Architecture mismatch.${NC}"
@@ -176,38 +181,42 @@ if [[ -e $LIBRARY/temp/Info/os-architecture ]]; then
 		exit
 	fi
 fi
-if [[ -e $LIBRARY/convert_failed ]]; then
+if [[ -f $LIBRARY/convert_failed ]]; then
 	echo -e "${YEL}WARNING:${NC} DEPRICATED DATABASE CONVERSION FAILED."
 fi
-mkdir $LIBRARY/temp/Payload
-unzip -qq $LIBRARY/temp/Payload.zip -d $LIBRARY/temp/Payload
-if [[ -e $LIBRARY/temp/userPayload.zip ]]; then
-	mkdir $LIBRARY/temp/userPayload
-	unzip -qq $LIBRARY/temp/userPayload.zip -d $LIBRARY/temp/userPayload
+if [[ $FASTSCRIPT == "NO" ]]; then
+	mkdir $LIBRARY/temp/Payload
+	unzip -qq $LIBRARY/temp/Payload.zip -d $LIBRARY/temp/Payload
+	if [[ -f $LIBRARY/temp/userPayload.zip ]]; then
+		mkdir $LIBRARY/temp/userPayload
+		unzip -qq $LIBRARY/temp/userPayload.zip -d $LIBRARY/temp/userPayload
+	fi
 fi
-if [[ ! -e $LIBRARY/temp/Info/pkgname ]]; then
+if [[ ! -f $LIBRARY/temp/Info/pkgname ]]; then
 	echo -e "${RED}Error: (37)${NC} Package Corruption (No PN control). Unable to continue.${NC}"
 	sudo rm -r $LIBRARY/temp
 	sudo rm $LIBRARY/lock
 	exit
-elif [[ ! -e $LIBRARY/temp/Info/version ]]; then
+elif [[ ! -f $LIBRARY/temp/Info/version ]]; then
 	echo -e "${RED}Error: (38)${NC} Package Corruption (No Version control). Unable to continue.${NC}"
 	sudo rm -r $LIBRARY/temp
 	sudo rm $LIBRARY/lock
 	exit
-elif [[ ! -e $LIBRARY/temp/Info/pkgid ]]; then
+elif [[ ! -f $LIBRARY/temp/Info/pkgid ]]; then
 	echo -e "${RED}Error: (38)${NC} Package Corruption (No PI control). Unable to continue.${NC}"
 	sudo rm -r $LIBRARY/temp
 	sudo rm $LIBRARY/lock
 	exit
 fi
-if [[ ! -e $LIBRARY/temp/Payload ]]; then
-	echo -e "${RED}Error: (39)${NC} Package Corruption (No payload). Unable to continue.${NC}"
-	sudo rm -r $LIBRARY/temp
-	sudo rm $LIBRARY/lock
-	exit
+if [[ $FASTSCRIPT == "NO" ]]; then
+	if [[ ! -d $LIBRARY/temp/Payload ]]; then
+		echo -e "${RED}Error: (39)${NC} Package Corruption (No payload). Unable to continue.${NC}"
+		sudo rm -r $LIBRARY/temp
+		sudo rm $LIBRARY/lock
+		exit
+	fi
 fi
-if [[ -e $LIBRARY/temp/Info/unremovable ]]; then
+if [[ -f $LIBRARY/temp/Info/unremovable ]]; then
 	echo -e "${YEL}WARNING: ${NC}Unremovable flag is included in the package."
 	echo -e "${RED}SECURITY: (1)${NC} Package seems not safe. Please do not install this package."
 	sudo rm -r $LIBRARY/temp
@@ -215,10 +224,13 @@ if [[ -e $LIBRARY/temp/Info/unremovable ]]; then
 	exit
 fi
 echo "Installing "$(<$LIBRARY/temp/Info/pkgname)"..."
+if [[ -f $LIBRARY/temp/Info/author ]]; then
+	echo "By $(<$LIBRARY/temp/Info/author)"
+fi
 echo "Selecting "$(<$LIBRARY/temp/Info/pkgid) $(<$LIBRARY/temp/Info/version)" to install..."
 if [[ ! -z $(ls $LIBRARY/db | grep $(<$LIBRARY/temp/Info/pkgid)) ]]; then
 	echo -e "${YEL}WARNING: ${NC}"$(<$LIBRARY/temp/Info/pkgid) "is already installed.${NC}"
-	if [[ -e $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/unremovable ]]; then
+	if [[ -f $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/unremovable ]]; then
 		echo -e "${RED}Error: (51)${NC} This package cannot be reinstalled, because it is unremovable flag is on for this package ID.${NC}"
 		sudo rm -r $LIBRARY/temp
 		sudo rm $LIBRARY/lock
@@ -236,153 +248,178 @@ if [[ ! -z $(ls $LIBRARY/db | grep $(<$LIBRARY/temp/Info/pkgid)) ]]; then
 			exit
 		fi
 	else
-		echo "Upgrading package..."
+		echo -e "${GRN}Approved:${NC} Upgrading package..."
 	fi
 else
 	echo "This package is not installed yet."
 fi
-if [[ -e $LIBRARY/convert_failed ]]; then
+if [[ -f $LIBRARY/convert_failed ]]; then
 	echo -e "${YEL}WARNING:${NC} DEPRICATED DATABASE CONVERSION FAILED."
 fi
-if [[ -e $LIBRARY/temp/Info/compatibility.sh ]]; then
+if [[ -f $LIBRARY/temp/Info/compatibility.sh ]]; then
 	echo "Checking compatibility..."
-	sudo $LIBRARY/temp/Info/compatibility.sh $LIBRARY/temp/Info
-	if [[ -e $LIBRARY/temp/Info/compatibility-warning ]]; then
-		echo -e "${YEL}WARNING:${NC} Compatibility warning detected..."
-	elif [[ -e $LIBRARY/temp/Info/compatibility-error ]]; then
+	echo -ne "${GRY}"
+	sudo $LIBRARY/temp/Info/compatibility.sh
+	EXITCODE=$?
+	echo -ne "${NC}"
+	if [[ $EXITCODE == 1 ]]; then
+		echo -e "${YEL}WARNING:${NC} Compatibility warning!"
+	elif [[ $EXITCODE == 2 ]]; then
 		echo -e "${RED}Error: (99)${NC} This package is incompatible."
 		sudo rm -r $LIBRARY/temp
 		sudo rm $LIBRARY/lock
 		exit
-	else
+	elif [[ $EXITCODE == 0 ]]; then
 		echo -e "${GRN}Done: ${NC}Compatibility check complete.${NC}"
+	else
+		echo -e "${RED}Error: ${NC}Compatibility script returned unknown exit code. The package may not be compatible, therefore will stop the installation."
+		exit
 	fi
 fi
 if [[ $2 -ne "--ignore-dependency" ]]; then
 	dependencyCheck
 fi
 conflictCheck
-if [[ -e $LIBRARY/temp/Info/preinst.sh ]]; then
+if [[ -f $LIBRARY/temp/Info/preinst.sh ]]; then
 	echo "Running preinst..."
+	echo -ne "${GRY}"
 	sudo $LIBRARY/temp/Info/preinst.sh
+	echo -ne "${NC}"
 fi
 echo "Removing Finder Elements..."
 sudo find $LIBRARY/temp -name ".DS_Store" -exec rm {} \;
 echo "Installing..."
-if [[ $target == "/" ]]; then
-	sudo cp -r $LIBRARY/temp/Payload/* $ROOTFS
-else
-	sudo cp -r $LIBRARY/temp/Payload/* $target
-fi
-if [[ -e $LIBRARY/temp/userPayload ]]; then
-	echo "Userpayload detected...!"
-	if [[ -e $LIBRARY/usersupport/localuser ]]; then
-		echo "User directory: "$(<$LIBRARY/usersupport/localuser)
-		if [[ $userpayloadtarget == "nil" ]]; then
-			sudo cp -r $LIBRARY/temp/userPayload/* $(<$LIBRARY/usersupport/localuser)
-		else
-			sudo cp -r $LIBRARY/temp/userPayload/* $userpayloadtarget
-		fi
+if [[ $FASTSCRIPT == "NO" ]]; then
+	if [[ $target == "/" ]]; then
+		sudo cp -r $LIBRARY/temp/Payload/* $ROOTFS
 	else
-		echo -e "${YEL}This package requires \"libusersupport\" to copy user library.${NC}"
-		echo -e "${YEL}RootFS Payload will be copied, but userpayload will NOT be copied, since there is no supporting layer.${NC}"
-		echo -e "${YEL}Please install libusersupport first, then reinstall this package.${NC}"
-		echo -e "${RED}MISSING USERPAYLOAD MAY CAUSE SERIOUS MALFUNCTION OF PACKAGE, AND MAY LEAD TO DAMANGING THE MACHINE.${NC}"
-		sudo touch $LIBRARY/temp/userpayloadnotcopied
+		sudo cp -r $LIBRARY/temp/Payload/* $target
 	fi
-fi
-if [[ -e $LIBRARY/temp/Info/postinst.sh ]]; then
-	echo "Running postinst..." 
-	sudo $LIBRARY/temp/Info/postinst.sh
-fi
-echo "Installing controls..."
-if [[ ! -e $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid) ]]; then
-	sudo mkdir $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)
-fi
-sudo cp $LIBRARY/temp/Info/* $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/
-if [[ $target == "/" ]]; then
-	echo "Writing connected files to database..."
-	sudo find $LIBRARY/temp/Payload -not -type d | grep $LIBRARY/temp/Payload > $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
-	sudo sed -i '' s/$SEDLIB/\\// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
-	sudo sed -i '' s/Thumbs.db// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
-	sudo sed -i '' s/.DS_Store// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
-	sudo sed -i '' s/\\/usr\\/local\\/mpkglib\\/temp\\/Payload// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
-else
-	echo -e "${YEL}WARNING:${NC} Skipped index writing."
-	touch $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
-fi
-if [[ -e $LIBRARY/temp/userPayload ]]; then
-	if [[ $userpayloadtarget == "nil" ]]; then
-		if [[ ! -e $LIBRARY/temp/userpayloadnotcopied ]]; then
-			sudo find $LIBRARY/temp/userPayload -not -type d | grep $LIBRARY/temp/userPayload > $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
-			sudo sed -i '' s/$SEDLIB/\\// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
-			sudo sed -i '' s/Thumbs.db// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
-			sudo sed -i '' s/.DS_Store// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
-			sudo sed -i '' s/\\/usr\\/local\\/mpkglib\\/temp\\/userPayload// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
+	if [[ -d $LIBRARY/temp/userPayload ]]; then
+		echo "Userpayload detected...!"
+		if [[ -f $LIBRARY/usersupport/localuser ]]; then
+			echo "User directory: "$(<$LIBRARY/usersupport/localuser)
+			if [[ $userpayloadtarget == "nil" ]]; then
+				sudo cp -r $LIBRARY/temp/userPayload/* $(<$LIBRARY/usersupport/localuser)
+			else
+				sudo cp -r $LIBRARY/temp/userPayload/* $userpayloadtarget
+			fi
 		else
-			echo -e "${RED}Userpayload is not copied, so will not be added to database.${NC}"
-			sudo rm $LIBRARY/temp/userpayloadnotcopied
+			echo -e "${YEL}This package requires \"libusersupport\" to copy user library.${NC}"
+			echo -e "${YEL}RootFS Payload will be copied, but userpayload will NOT be copied, since there is no supporting layer.${NC}"
+			echo -e "${YEL}Please install libusersupport first, then reinstall this package.${NC}"
+			echo -e "${RED}MISSING USERPAYLOAD MAY CAUSE SERIOUS MALFUNCTION OF PACKAGE, AND MAY LEAD TO DAMANGING THE MACHINE.${NC}"
+			sudo touch $LIBRARY/temp/userpayloadnotcopied
 		fi
-	else
-		echo -e "${YEL}Skipped user index writing.${NC}"
-		touch $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
 	fi
-fi
-echo -e "${GRN}Done: ${NC}Analysis written to database.${NC}"
-if [[ -e $LIBRARY/convert_failed ]]; then
-	echo -e "${YEL}Warning! DEPRICATED DATABASE CONVERSION FAILED.${NC}"
-fi
-if [[ $3 == "--target" ]]; then
-	echo -e "${YEL}WARNING:${NC} Temporarily unlocking library for subprocess..."
-	sudo rm $LIBRARY/lock
-	sudo mpkg -b $(<$LIBRARY/temp/Info/pkgid) -y
-	echo "Relocking..."
-	sudo touch $LIBRARY/lock
-	sudo rm $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/unremovable
-elif [[ $4 == "--usertarget" ]]; then
-	echo -e "${YEL}WARNING:${NC} Temporarily unlocking library for subprocess..."
-	sudo rm $LIBRARY/lock
-	sudo mpkg -b $(<$LIBRARY/temp/Info/pkgid) -y
-	echo "Relocking..."
-	sudo touch $LIBRARY/lock
-	sudo rm $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/unremovable
-fi
-echo -e "${GRN}Done: ${NC}Finished installing:" $(<$LIBRARY/temp/Info/pkgname) $(<$LIBRARY/temp/Info/version)"${NC}"
-if [[ -e $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/trigger_binary ]] && [[ -e $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/trigger_package ]]; then
-	echo -e "${YEL}${YEL}WARNING:${NC} Requires trigger."
-	if [[ -z $(ls $LIBRARY/db | grep $(<$LIBRARY/db/"$LIBRARY/temp/Info/pkgid)/trigger_package")) ]]; then
-		echo -e "${RED}Error: Trigger package is not installed!${NC}"
-		echo -e "${YEL}This package has to be removed.${NC}"
-		echo "Uninstalling..."
-		if [[ -e $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/prerm.sh ]]; then
-			echo "Running prerm..."
-			$LIBRARY/db/"$pkg"/prerm.sh
-		fi
-		echo "Removing data..."
-		sudo rm -r $(<$LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files)
-		if [[ -e $LIBRARY/db/"$pkg"/postrm.sh ]]; then
-			echo "Running postrm..."
-			$LIBRARY/db/"$pkg"/postrm.sh
-		fi
-		echo "Removing control..."
-		removalID=$(<$LIBRARY/temp/Info/pkgid)
+else
+	if [[ ! -f $LIBRARY/temp/Info/fastscript.sh ]]; then
+		echo -e "${RED}FATAL:${NC} Fastscript not included!"
 		sudo rm -r $LIBRARY/temp
 		sudo rm $LIBRARY/lock
-		sudo rm -r $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)
 		exit
-	else
-		echo "Triggering $(<$LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/trigger_package)..."
-		sudo "$LIBRARY/temp/Info/pkgid)/trigger_binary" --reload
-		echo -e "${GRN}Done.${NC}"
 	fi
+	echo "Running Fastscript..."
+	echo -ne "${GRY}"
+	sudo $LIBRARY/temp/Info/fastscript.sh
+	echo -ne "${NC}"
 fi
-if [[ -e $LIBRARY/temp/Info/changelog ]]; then
-	if [[ -z $(<$LIBRARY/temp/Info/changelog) ]]; then
-		echo -e "${YEL}WARNING:${NC} Skipped changelog because it is empty."
+if [[ -f $LIBRARY/temp/Info/postinst.sh ]]; then
+	echo "Running postinst..." 
+	echo -ne "${GRY}"
+	sudo $LIBRARY/temp/Info/postinst.sh
+	echo -ne "${NC}"
+fi
+if [[ $FASTSCRIPT == "NO" ]]; then
+	echo "Installing controls..."
+	sudo mkdir -p $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)
+	sudo cp $LIBRARY/temp/Info/* $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/
+	if [[ $target == "/" ]]; then
+		echo "Writing connected files to database..."
+		sudo find $LIBRARY/temp/Payload -not -type d | grep $LIBRARY/temp/Payload > $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
+		sudo sed -i '' s/$SEDLIB/\\// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
+		sudo sed -i '' s/Thumbs.db// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
+		sudo sed -i '' s/.DS_Store// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
+		sudo sed -i '' s/\\/usr\\/local\\/mpkglib\\/temp\\/Payload// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
 	else
-		echo "Changelog ========================"
-		cat $LIBRARY/temp/Info/changelog
-		echo "=================================="
+		echo -e "${YEL}WARNING:${NC} Skipped index writing."
+		touch $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files
+	fi
+	if [[ -d $LIBRARY/temp/userPayload ]]; then
+		if [[ $userpayloadtarget == "nil" ]]; then
+			if [[ ! -f $LIBRARY/temp/userpayloadnotcopied ]]; then
+				sudo find $LIBRARY/temp/userPayload -not -type d | grep $LIBRARY/temp/userPayload > $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
+				sudo sed -i '' s/$SEDLIB/\\// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
+				sudo sed -i '' s/Thumbs.db// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
+				sudo sed -i '' s/.DS_Store// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
+				sudo sed -i '' s/\\/usr\\/local\\/mpkglib\\/temp\\/userPayload// $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
+			else
+				echo -e "${RED}Userpayload is not copied, so will not be added to database.${NC}"
+				sudo rm $LIBRARY/temp/userpayloadnotcopied
+			fi
+		else
+			echo -e "${YEL}Skipped user index writing.${NC}"
+			touch $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/userfiles
+		fi
+	fi
+	echo -e "${GRN}Done: ${NC}Analysis written to database.${NC}"
+	if [[ -f $LIBRARY/convert_failed ]]; then
+		echo -e "${YEL}Warning! DEPRICATED DATABASE CONVERSION FAILED.${NC}"
+	fi
+	if [[ $3 == "--target" ]]; then
+		echo -e "${YEL}WARNING:${NC} Temporarily unlocking library for subprocess..."
+		sudo rm $LIBRARY/lock
+		sudo mpkg -b $(<$LIBRARY/temp/Info/pkgid) -y
+		echo "Relocking..."
+		sudo touch $LIBRARY/lock
+		sudo rm $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/unremovable
+	elif [[ $4 == "--usertarget" ]]; then
+		echo -e "${YEL}WARNING:${NC} Temporarily unlocking library for subprocess..."
+		sudo rm $LIBRARY/lock
+		sudo mpkg -b $(<$LIBRARY/temp/Info/pkgid) -y
+		echo "Relocking..."
+		sudo touch $LIBRARY/lock
+		sudo rm $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/unremovable
+	fi
+	echo -e "${GRN}Done: ${NC}Finished installing:" $(<$LIBRARY/temp/Info/pkgname) $(<$LIBRARY/temp/Info/version)"${NC}"
+	if [[ -f $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/trigger_binary ]] && [[ -e $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/trigger_package ]]; then
+		echo -e "${YEL}${YEL}WARNING:${NC} Requires trigger."
+		if [[ -z $(ls $LIBRARY/db | grep $(<$LIBRARY/db/"$LIBRARY/temp/Info/pkgid)/trigger_package")) ]]; then
+			echo -e "${RED}Error: Trigger package is not installed!${NC}"
+			echo -e "${YEL}This package has to be removed.${NC}"
+			echo "Uninstalling..."
+			if [[ -f $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/prerm.sh ]]; then
+				echo "Running prerm..."
+				$LIBRARY/db/"$pkg"/prerm.sh
+			fi
+			echo "Removing data..."
+			sudo rm -r $(<$LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/files)
+			if [[ -f $LIBRARY/db/"$pkg"/postrm.sh ]]; then
+				echo "Running postrm..."
+				$LIBRARY/db/"$pkg"/postrm.sh
+			fi
+			echo "Removing control..."
+			removalID=$(<$LIBRARY/temp/Info/pkgid)
+			sudo rm -r $LIBRARY/temp
+			sudo rm $LIBRARY/lock
+			sudo rm -r $LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)
+			exit
+		else
+			echo "Triggering $(<$LIBRARY/db/$(<$LIBRARY/temp/Info/pkgid)/trigger_package)..."
+			sudo "$(<$LIBRARY/temp/Info/pkgid/trigger_binary)" --reload
+			echo -e "${GRN}Done.${NC}"
+		fi
+	fi
+	if [[ -f $LIBRARY/temp/Info/changelog ]]; then
+		if [[ -z $(<$LIBRARY/temp/Info/changelog) ]]; then
+			echo -e "${YEL}WARNING:${NC} Skipped changelog because it is empty."
+		else
+			echo -ne "${GRY}"
+			echo "Changelog ========================"
+			cat $LIBRARY/temp/Info/changelog
+			echo "=================================="
+			echo -ne "${NC}"
+		fi
 	fi
 fi
 echo "Cleaning up..."

@@ -15,7 +15,7 @@ if [[ -z $1 ]]; then
 		echo -e "${RED}Error: (35)${NC} No package specified!${NC}"
 	fi
 	exit
-elif [[ ! -e $LIBRARY/db/$1 ]]; then
+elif [[ ! -d $LIBRARY/db/$1 ]]; then
 	echo -e "${RED}Error: ${NC}Package is not installed.${NC}"
 	exit
 else
@@ -24,7 +24,7 @@ else
 		touch $LIBRARY/lock
 		echo "Removing file connection from db..."
 		sudo rm $LIBRARY/db/$1/files
-		if [[ -e $LIBRARY/db/$1/userfiles ]]; then
+		if [[ -f $LIBRARY/db/$1/userfiles ]]; then
 			sudo rm $LIBRARY/db/$1/userfiles
 		fi
 		echo "Adding unremovable flag..."
@@ -42,12 +42,12 @@ else
 			echo "Locking library..."
 			touch $LIBRARY/lock
 			echo "Removing file connection from db..."
-			if [[ ! -e $LIBRARY/db/$1/files ]]; then
+			if [[ ! -f $LIBRARY/db/$1/files ]]; then
 				echo -e "${YEL}WARNING: ${NC}Files connection not found."
 			else
 				sudo rm $LIBRARY/db/$1/files
 			fi
-			if [[ -e $LIBRARY/db/$1/userfiles ]]; then
+			if [[ -f $LIBRARY/db/$1/userfiles ]]; then
 				sudo rm $LIBRARY/db/$1/userfiles
 			fi
 			echo "Adding unremovable flag..."

@@ -10,6 +10,7 @@ RED='\033[0;31m'
 GRN='\033[0;32m'
 YEL='\033[0;33m'
 BLU='\033[0;34m'
+GRY='\033[0;90m'
 NC='\033[0m'
 if [[ "$pkg" == ":selected" ]]; then
 	declare -i loopset=$(wc -l < $LIST)
@@ -65,7 +66,7 @@ elif [[ $args == "--upgrade" ]]; then
 elif [[ $args == "--select" ]]; then
 	sudo $BINARY/mpkg-select $2 $3 $4 $5 $6 $7 $8 $9
 elif [[ $args == "fullmpkgerase" ]]; then
-	sudo $BINARY/mpkg-erase $2
+	sudo $BINARY/mpkg-remove mpkg "@selfremove"
 else
 	$LIBRARY/binary/mpkg-manual
 	exit

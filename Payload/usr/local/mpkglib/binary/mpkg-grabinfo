@@ -13,8 +13,21 @@ if [[ -z "$pkg" ]]; then
 	echo -e "${RED}Error: (35)${NC} No package specified!${NC}"
 	exit
 fi
-echo "Package Info:"
-echo "Name:" $(<$LIBRARY/db/"$pkg"/pkgname)
-echo "ID:" $(<$LIBRARY/db/"$pkg"/pkgid)
-echo "Version:" $(<$LIBRARY/db/"$pkg"/version)
+if [[ -f $LIBRARY/db/"$pkg"/pkgname ]] && [[ -f $LIBRARY/db/"$pkg"/pkgid ]] && [[ -f $LIBRARY/db/"$pkg"/version ]]; then
+	echo "Package Info:"
+	echo "Name:" $(<$LIBRARY/db/"$pkg"/pkgname)
+	echo "ID:" $(<$LIBRARY/db/"$pkg"/pkgid)
+	echo "Version:" $(<$LIBRARY/db/"$pkg"/version)
+	if [[ -f $LIBRARY/db/"$pkg"/author ]]; then
+		echo "Author:" $(<$LIBRARY/db/"$pkg"/author)
+	fi
+	if [[ -f $LIBRARY/db/"$pkg"/conflicts ]]; then
+		echo "Conflicts:" $(<$LIBRARY/db/"$pkg"/conflicts)
+	fi
+	if [[ -f $LIBRARY/db/"$pkg"/depends ]]; then
+		echo "Depends:" $(<$LIBRARY/db/"$pkg"/depends)
+	fi
+else
+	echo -e "${RED}Error: (36)${NC}Missing control info!"
+fi
 exit

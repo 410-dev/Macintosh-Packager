@@ -1,4 +1,4 @@
-Version 8.0 Darwin
+Version 8.0
 Added:
 - Support old packages without compatibility layer
 - Automatic triggers for mpkg-base packages
@@ -9,12 +9,27 @@ Added:
 - More in security patches
 - Verifies broken package
 - Autoconvert to new structure
+- Support Fastscript package (Only script is running)
+- Preinst, postinst, prerm, postrm, compatibility, changelog's output color is set to gray
+- When package is upgrade, approval will show up in color
+- Supports author of the pacakge
+- Package info shower will tell dependencies and conflicts
 
  Modifications:
  - Fixed mpkg -c option error
  - Fixed --ignore-dependency removal bug
  - Fixed mpkg self removal
+ - Fixed file end corruption error
+ - Fixed control directory exist error
+ - Fixed unsuccessful installation termination error
+ - Fixed trigger binary reload error
+ - Fixed package uninstallation with incorrect package id
  - Changed structures
+ - Changed self removal code
+ - Checking Compatibility will detect the script's exit code (0=ok, 1=warning, 2=error)
+ - mpkg -m does not require darwin64 architecture anymore
+ - Changed depricated -e flags
+ - Changed upgrade address
 
 Security Patch:
 - Aborts installation if package serves unremovable flag

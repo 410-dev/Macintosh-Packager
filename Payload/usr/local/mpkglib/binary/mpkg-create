@@ -8,6 +8,10 @@ elif [[ -z "$2" ]]; then
 	$LIBRARY/binary/mpkgcreate-manual
 	exit
 fi
+if [[ ! -d "$1" ]]; then
+	echo "Directory not found."
+	exit 1
+fi
 echo "Building directories..."
 PTH=""
 if [[ "$1" == *"/" ]]; then
@@ -36,6 +40,7 @@ touch "$PTH"/Info/prerm.sh
 touch "$PTH"/Info/postrm.sh
 touch "$PTH"/Info/conflicts
 touch "$PTH"/Info/nodeploy
+touch "$PTH"/Info/author
 touch "$PTH"/Info/trigger_package
 touch "$PTH"/Info/trigger_binary
 echo $2 > "$PTH"/Info/pkgname

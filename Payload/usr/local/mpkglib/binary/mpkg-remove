@@ -9,6 +9,7 @@ RED='\033[0;31m'
 GRN='\033[0;32m'
 YEL='\033[0;33m'
 BLU='\033[0;34m'
+GRY='\033[0;90m'
 NC='\033[0m'
 if [ "$EUID" -ne 0 ]; then 
 	echo -e "${RED}Error:${NC} Not enough permission!${NC}"
@@ -20,11 +21,18 @@ if [[ -z "$pkg" ]]; then
 	fi
 	exit
 fi
-if [[ "$pkg" == "mpkg" ]] && [[ $2 -ne "@selfremove" ]]; then
+if [[ "$pkg" == "mpkg" ]] && [[ "$2" == "--selfremove" ]]; then
+	echo "Deleting libraries..."
+	sudo rm -f /private/etc/paths.d/mpkg
+	sudo rm -f /usr/local/bin/mpkg
+	sudo rm -rf /usr/local/mpkglib
+	echo -e "${GRN}Done!${NC}"
+	exit
+elif [[ "$pkg" == "mpkg" ]] && [[ "$2" == "--selfremove" ]]; then
 	echo -e "${RED}Error: (62)${NC}Please use mpkg-erase to remove mpkg.${NC}"
 	exit
 fi
-if [[ -z $(ls $LIBRARY/db | grep "$pkg") ]]; then
+if [[ ! -d $LIBRARY/db/"$pkg" ]]; then
 	echo -e "${RED}Error: ${NC}Package does not exist. Unable to remove.${NC}"
 	echo "Type mpkg -l to see the installed packages."
 	exit
@@ -52,7 +60,7 @@ else
 			loopProgress=$(( $loopProgress + 1 ))
 			if [[ ! -z $(awk -v line=$loopProgress 'NR==line' $LIBRARY/cache/dependencies | grep "$pkg") ]]; then
 				echo -e "${YEL}WARNING: ${NC}A package depends on this package."
-				echo -e "${RED}Error: (63)${NC}Package removal stopped.${NC}"
+				echo -e "${RED}Error: (63)${NC} Package removal stopped.${NC}"
 				sudo rm $LIBRARY/lock
 				sudo rm $LIBRARY/cache/dependencies
 				sudo rm $LIBRARY/cache/dependencies-list
@@ -63,21 +71,23 @@ else
 	sudo rm $LIBRARY/cache/dependencies
 	sudo rm $LIBRARY/cache/dependencies-list
 fi
-if [[ -e $LIBRARY/db/"$pkg"/unremovable ]]; then
+if [[ -f $LIBRARY/db/"$pkg"/unremovable ]]; then
 	echo -e "${RED}Error: (50)${NC} Removal is blocked.${NC}"
 	sudo rm $LIBRARY/lock
 	exit
 fi
 if [[ $2 -ne "--ctr-only" ]]; then
-	if [[ ! -e $LIBRARY/db/"$pkg"/files ]]; then
+	if [[ ! -f $LIBRARY/db/"$pkg"/files ]]; then
 		echo -e "${RED}Error: (25)${NC} No file connection data!${NC}"
 		sudo rm $LIBRARY/lock
 		exit
 	else
 		echo "Uninstalling..."
-		if [[ -e $LIBRARY/db/"$pkg"/prerm.sh ]]; then
+		if [[ -f $LIBRARY/db/"$pkg"/prerm.sh ]]; then
 			echo "Running prerm..."
+			echo -ne "${GRY}"
 			$LIBRARY/db/"$pkg"/prerm.sh
+			echo -ne "${NC}"
 		fi
 		echo "Removing data..."
 		declare -i loopset=$(wc -l < $LIBRARY/db/"$pkg"/files)
@@ -86,7 +96,7 @@ if [[ $2 -ne "--ctr-only" ]]; then
 			loopProgress=$(( $loopProgress + 1 ))
 			sudo rm -rf $(awk -v line=$loopProgress 'NR==line' $LIBRARY/db/"$pkg"/files)
 		done
-		if [[ -e $LIBRARY/db/"$pkg"/userfiles ]]; then
+		if [[ -f $LIBRARY/db/"$pkg"/userfiles ]]; then
 			echo "Removing user data..."
 			declare -i loopset=$(wc -l < $LIBRARY/db/"$pkg"/userfiles)
 			declare -i loopProgress=0
@@ -95,11 +105,13 @@ if [[ $2 -ne "--ctr-only" ]]; then
 				sudo rm -rf "$(<$LIBRARY/usersupport/localuser)"/"$(awk -v line=$loopProgress 'NR==line' $LIBRARY/db/"$pkg"/userfiles)"
 			done
 		fi
-		if [[ -e $LIBRARY/db/"$pkg"/postrm.sh ]]; then
+		if [[ -f $LIBRARY/db/"$pkg"/postrm.sh ]]; then
 			echo "Running postrm..."
+			echo -ne "${GRY}"
 			$LIBRARY/db/"$pkg"/postrm.sh
+			echo -ne "${NC}"
 		fi
-		if [[ -e $LIBRARY/db/"$pkg"/depends ]]; then
+		if [[ -f $LIBRARY/db/"$pkg"/depends ]]; then
 			if [[ ! -z $(cat $LIBRARY/db/"$pkg"/depends | grep "com.zeone.osxsubstrate") ]]; then
 				echo "Reloading Substrate database..."
 				/usr/local/substratelib/substrate --reload

@@ -33,5 +33,6 @@ for f in *; do
 	echo "Moved: $f"
 done
 echo "Cleaning..."
+cd ..
 rm -r compiled
 echo "Done."

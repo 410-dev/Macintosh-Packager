@@ -1,0 +1,37 @@
+#!/bin/bash
+LIBRARY="/usr/local/mpkglib"
+LIST=$LIBRARY/cache/selectedPKGList
+
+RED='\033[0;31m'
+GRN='\033[0;32m'
+YEL='\033[0;33m'
+BLU='\033[0;34m'
+NC='\033[0m'
+
+if [[ $1 == "--clear" ]]; then
+	if [[ -f $LIST ]]; then
+		sudo rm $LIST
+		echo -e "${GRN}Done${NC}: Cleared queue."
+		exit 0
+	else
+		echo -e "${RED}Error${NC}: There was nothing in queue."
+		exit -1
+	fi
+elif [[ -z $1 ]]; then
+	echo -e "${RED}Error${NC}: Selection field is empty."
+	exit -1
+else
+	echo "$1
+$2
+$3
+$4
+$5
+$6
+$7
+$8
+$9
+" >> $LIST
+	SedList="\/usr\/local\/mpkglib\/cache\/selectedPKGList"
+	echo -e "${GRN}Done${NC}: Added to queue: $1 $2 $3 $4 $5 $6 $7 $8 $9"
+	exit 0
+fi

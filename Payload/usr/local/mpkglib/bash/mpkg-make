@@ -1,0 +1,101 @@
+#!/bin/bash
+ROOTFS="/"
+LIBRARY=$ROOTFS"usr/local/mpkglib"
+RED='\033[0;31m'
+GRN='\033[0;32m'
+BLU='\033[0;34m'
+NC='\033[0m'
+if [[ -z "$1" ]]; then
+	$LIBRARY/binary/mpkgmake-manual
+	exit
+fi
+if [[ -z "$1" ]]; then
+	echo -e "${RED}Error: ${NC}Missing package parameter!${NC}"
+	exit
+fi
+if [[ -d "$1"/Payload ]]; then
+	cd "$1"/Payload
+	zip -rq Payload.zip . -x ".*" -x "__MACOSX"
+	mv Payload.zip ../Payload.zip
+	cd ..
+	if [[ -d "$1"/userPayload ]]; then
+		echo -e "${BLU}User's Payload detected...${NC}"
+		cd "$1"/userPayload
+		zip -rq userPayload.zip . -x ".*" -x "__MACOSX"
+		mv userPayload.zip ../userPayload.zip
+		cd ..
+	fi
+	if [[ ! -f "$1"/Info/pkgid ]]; then
+		rm "$1"/Payload.zip
+		echo -e "${RED}Package ID Missing!${NC}"
+		exit -1
+	elif [[ -z $(<"$1"/Info/pkgid) ]]; then
+		rm "$1"/Payload.zip
+		echo -e "${RED}Package ID empty!${NC}"
+		exit -1
+	elif [[ ! -z $(echo $(<"$1"/Info/pkgid) | grep ":") ]]; then
+		rm "$1"/Payload.zip
+		echo -e "${RED}Package ID has illegal symbol!${NC}"
+		exit -1
+	else
+		echo "Package ID: "$(<"$1"/Info/pkgid)
+	fi
+	if [[ ! -f "$1"/Info/pkgname ]]; then
+		rm "$1"/Payload.zip
+		echo -e "${RED}Package Name Missing!${NC}"
+		exit -1
+	elif [[ -z $(<"$1"/Info/pkgname) ]]; then
+		rm "$1"/Payload.zip
+		echo -e "${RED}Package Name empty!${NC}"
+		exit -1
+	else
+		echo "Package Name: "$(<"$1"/Info/pkgname)
+	fi
+	if [[ ! -f "$1"/Info/version ]]; then
+		rm "$1"/Payload.zip
+		echo -e "${RED}Package version Missing!${NC}"
+		exit -1
+	elif [[ -z $(<"$1"/Info/version) ]]; then
+		rm "$1"/Payload.zip
+		echo -e "${RED}Package version empty!${NC}"
+		exit -1
+	else
+		echo "Package Version: "$(<"$1"/Info/version)
+	fi
+	echo "Packing Information Cluster..."
+	cd "$1"/Info
+	zip -rq Info.zip . -x ".*" -x "__MACOSX"
+	mv Info.zip ../Info.zip
+	cd ..
+	mkdir cache
+	mv Info.zip ./cache/Info.zip
+	mv Payload.zip ./cache/Payload.zip
+	if [[ -f userPayload.zip ]]; then
+		mv userPayload.zip ./cache/userPayload.zip
+	fi
+	cd cache
+	echo "Naming..."
+	NAME=$(<"$1"/Info/pkgid)
+	NAME="$NAME"_$(<"$1"/Info/version)
+	if [[ $2 == "Darwin" ]]; then
+		NAME="$NAME"_darwin64
+	elif [[ $2 == "Linux" ]]; then
+		NAME="$NAME"_linux
+	elif [[ $2 == "Duo" ]]; then
+		NAME="$NAME"_duo
+	else
+		NAME="$NAME"
+	fi
+	echo "Packing up..."
+	zip -rq $NAME.zip . -x ".*" -x "__MACOSX"
+	mv "$NAME.zip" ../"$NAME.zip"
+	cd ..
+	mv "$NAME.zip" "$NAME.mpack"
+	rm -r cache
+	echo -e "${GRN}Done.${NC}"
+	exit 0
+else
+	echo -e "${RED}Error: ${NC}Payload directory not found.${NC}"
+	exit -1
+fi
+

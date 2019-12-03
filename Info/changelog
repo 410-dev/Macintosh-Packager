@@ -14,6 +14,7 @@ Added:
 - When package is upgrade, approval will show up in color
 - Supports author of the pacakge
 - Package info shower will tell dependencies and conflicts
+- Proper exit codes
 
  Modifications:
  - Fixed mpkg -c option error
@@ -24,12 +25,14 @@ Added:
  - Fixed unsuccessful installation termination error
  - Fixed trigger binary reload error
  - Fixed package uninstallation with incorrect package id
+ - Fixed potential bug at blockremove module
  - Changed structures
  - Changed self removal code
  - Checking Compatibility will detect the script's exit code (0=ok, 1=warning, 2=error)
  - mpkg -m does not require darwin64 architecture anymore
  - Changed depricated -e flags
  - Changed upgrade address
+ - All compiled
 
 Security Patch:
 - Aborts installation if package serves unremovable flag

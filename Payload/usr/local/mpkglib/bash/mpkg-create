@@ -1,0 +1,50 @@
+#!/bin/bash
+ROOTFS="/"
+LIBRARY=$ROOTFS"usr/local/mpkglib"
+if [[ -z "$1" ]]; then
+	$LIBRARY/binary/mpkgcreate-manual
+	exit $?
+elif [[ -z "$2" ]]; then
+	$LIBRARY/binary/mpkgcreate-manual
+	exit $?
+fi
+if [[ ! -d "$1" ]]; then
+	echo "Directory not found."
+	exit 1
+fi
+echo "Building directories..."
+PTH=""
+if [[ "$1" == *"/" ]]; then
+	mkdir "$1""$2"
+	PTH="$1""$2"
+elif [[ $2 == "/"* ]]; then
+	mkdir "$1""$2"
+	PTH="$1""$2"
+else
+	mkdir "$1"/"$2"
+	PTH="$1"/"$2"
+fi
+mkdir "$PTH"/"Info"
+mkdir "$PTH"/"Payload"
+mkdir "$PTH"/"userPayload"
+touch "$PTH"/Info/pkgname
+touch "$PTH"/Info/pkgid
+touch "$PTH"/Info/depends
+touch "$PTH"/Info/changelog
+touch "$PTH"/Info/os-architecture
+touch "$PTH"/Info/version
+touch "$PTH"/Info/compatibility.sh
+touch "$PTH"/Info/preinst.sh
+touch "$PTH"/Info/postinst.sh
+touch "$PTH"/Info/prerm.sh
+touch "$PTH"/Info/postrm.sh
+touch "$PTH"/Info/conflicts
+touch "$PTH"/Info/nodeploy
+touch "$PTH"/Info/author
+touch "$PTH"/Info/trigger_package
+touch "$PTH"/Info/trigger_binary
+echo $2 > "$PTH"/Info/pkgname
+echo $2 > "$PTH"/Info/pkgid
+chmod +x "$PTH"/Info/*.sh
+echo "Created ""$PTH"" workspace."
+exit 0

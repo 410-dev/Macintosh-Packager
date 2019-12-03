@@ -1,0 +1,34 @@
+#!/bin/bash
+pkg=$1
+ROOTFS="/"
+LIBRARY="/usr/local/mpkglib"
+
+RED='\033[0;31m'
+GRN='\033[0;32m'
+YEL='\033[0;33m'
+BLU='\033[0;34m'
+NC='\033[0m'
+
+if [[ -z "$pkg" ]]; then
+	echo -e "${RED}Error: (35)${NC} No package specified!${NC}"
+	exit 35
+fi
+if [[ -f $LIBRARY/db/"$pkg"/pkgname ]] && [[ -f $LIBRARY/db/"$pkg"/pkgid ]] && [[ -f $LIBRARY/db/"$pkg"/version ]]; then
+	echo "Package Info:"
+	echo "Name:" $(<$LIBRARY/db/"$pkg"/pkgname)
+	echo "ID:" $(<$LIBRARY/db/"$pkg"/pkgid)
+	echo "Version:" $(<$LIBRARY/db/"$pkg"/version)
+	if [[ -f $LIBRARY/db/"$pkg"/author ]]; then
+		echo "Author:" $(<$LIBRARY/db/"$pkg"/author)
+	fi
+	if [[ -f $LIBRARY/db/"$pkg"/conflicts ]]; then
+		echo "Conflicts:" $(<$LIBRARY/db/"$pkg"/conflicts)
+	fi
+	if [[ -f $LIBRARY/db/"$pkg"/depends ]]; then
+		echo "Depends:" $(<$LIBRARY/db/"$pkg"/depends)
+	fi
+else
+	echo -e "${RED}Error: (36)${NC}Missing control info!"
+	exit 36
+fi
+exit 0

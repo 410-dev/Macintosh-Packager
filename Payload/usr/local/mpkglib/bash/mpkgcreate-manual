@@ -1,0 +1,7 @@
+#!/bin/bash
+echo "Macintosh Packager"
+echo "Usage: mpkg -c [path] [name]"
+echo ""
+echo "Example:"
+echo "mpkg -c ~/Documents newmpkgproject"
+exit 0

@@ -18,56 +18,74 @@ if [[ "$pkg" == ":selected" ]]; then
 	echo "Total selected:" $loopset
 	while [[ $loopset -gt $loopProgress ]]; do
 		loopProgress=$(( $loopProgress + 1 ))
+		EXITC=0
 		if [[ $args == "-i" ]] || [[ $args == "--install" ]]; then
 			sudo $BINARY/mpkg-install "$(awk -v line=$loopProgress 'NR==line' $LIST)" "$3" "$4" "$5" "$6" "@@@@pkgsAreFromSelected"
+			EXITC=$?
 		elif [[ $args == "-r" ]] || [[ $args == "--remove" ]]; then
 			sudo $BINARY/mpkg-remove "$(awk -v line=$loopProgress 'NR==line' $LIST)" "$3" "@@@@pkgsAreFromSelected"
+			EXITC=$?
 		elif [[ $args == "-b" ]] || [[ $args == "--block-remove" ]]; then
 			sudo $BINARY/mpkg-blockremove "$(awk -v line=$loopProgress 'NR==line' $LIST)" "@@@@pkgsAreFromSelected"
+			EXITC=$?
 		fi
 	done
 	$BINARY/mpkg-select "--clear"
+	exit $EXITC
 elif [[ -z $args ]]; then
 	$BINARY/mpkg-manual
-	exit
+	exit $?
 elif [[ $args == "-i" ]] || [[ $args == "--install" ]]; then
 	sudo $BINARY/mpkg-install "$pkg" "$3" "$4" "$5" "$6"
-	exit
+	exit $?
 elif [[ $args == "-r" ]] || [[ $args == "--remove" ]]; then
 	sudo $BINARY/mpkg-remove "$pkg" "$3"
-	exit
+	exit $?
 elif [[ $args == "-h" ]] || [[ $args == "--help" ]]; then
 	$BINARY/mpkg-manual
-	exit
+	exit $?
 elif [[ $args == "-b" ]] || [[ $args == "--block-remove" ]]; then
 	sudo $BINARY/mpkg-blockremove "$pkg" "$3"
+	exit $?
 elif [[ $args == "--force-unlock" ]]; then
 	echo "Forcing mpkg unlock..."
-	sudo rm $LIBRARY/lock
-	echo -e "${GRN}Done.${NC}"
-	exit
+	if [[ -f $LIBRARY/lock ]]; then
+		sudo rm $LIBRARY/lock
+		EXITC=$?
+		exit $EXITC
+	else
+		echo "Not locked."
+		exit 0
+	fi
 elif [[ $args == "-v" ]] || [[ $args == "--version" ]]; then
 	echo "Macintosh Packager"
 	echo "Version "$(<$LIBRARY/db/mpkg/version)
-	exit
+	exit $?
 elif [[ $args == "-p" ]] || [[ $args == "--package-inspect" ]]; then
 	$BINARY/mpkg-grabinfo "$pkg"
+	exit $?
 elif [[ $args == "-l" ]] || [[ $args == "--list" ]]; then
 	ls $LIBRARY/db
-	exit
+	exit $?
 elif [[ $args == "-m" ]] || [[ $args == "--make" ]]; then
 	$BINARY/mpkg-make "$pkg" "$3" "$4"
+	exit $?
 elif [[ $args == "-c" ]] || [[ $args == "--create" ]]; then
 	$BINARY/mpkg-create "$pkg" "$3"
+	exit $?
 elif [[ $args == "-d" ]] || [[ $args == "--deploy" ]]; then
 	sudo $BINARY/mpkg-deploy $USER "$pkg" "$3" "$4"
+	exit $?
 elif [[ $args == "--upgrade" ]]; then
 	sudo $BINARY/mpkg-upgrade
+	exit $?
 elif [[ $args == "--select" ]]; then
 	sudo $BINARY/mpkg-select $2 $3 $4 $5 $6 $7 $8 $9
+	exit $?
 elif [[ $args == "fullmpkgerase" ]]; then
 	sudo $BINARY/mpkg-remove mpkg "@selfremove"
+	exit $?
 else
 	$LIBRARY/binary/mpkg-manual
-	exit
+	exit $?
 fi

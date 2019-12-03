@@ -1,0 +1,46 @@
+#!/bin/bash
+currentuser=$1
+pkg=$2
+ROOTFS="/"
+LIBRARY="/usr/local/mpkglib"
+
+RED='\033[0;31m'
+GRN='\033[0;32m'
+YEL='\033[0;33m'
+BLU='\033[0;34m'
+NC='\033[0m'
+echo "Loading repository..."
+LATEST=$(<$LIBRARY/pref/latest)
+RELEASE=$(<$LIBRARY/pref/release)
+CHANNEL="github.official.stable"
+echo "Checking for update..."
+if [[ ! -d $LIBRARY/cache ]]; then
+	mkdir $LIBRARY/cache
+fi
+if [[ -f $LIBRARY/pref/betahost ]] && [[ -d $LIBRARY/db/mpkg-beta ]]; then
+	LATEST=$(<$LIBRARY/pref/betahost)
+	CHANNEL="github.official.beta"
+	if [[ ! -z $(curl -Ls "$LATEST"-ltvdef | grep "stable") ]]; then
+		CHANNEL="github.official.stable (switched from beta)"
+		LATEST=$(<$LIBRARY/pref/latest)
+	fi
+fi
+echo "Update channel: $CHANNEL"
+curl -Ls "$LATEST" -o $LIBRARY/cache/latest
+EXITC=$?
+echo "Current Latest: $(<$LIBRARY/cache/latest)"
+if [[ "$(<$LIBRARY/db/mpkg/version)" == "$(<$LIBRARY/cache/latest)" ]]; then
+	echo "Update not found."
+else
+	echo "Downloading update: $(<$LIBRARY/cache/latest)"
+	curl -Ls "$RELEASE/$(<$LIBRARY/cache/latest)/mpkg_$(<$LIBRARY/cache/latest).mpack" -o $LIBRARY/cache/update.mpack
+	echo "Verifying update: update.mpack"
+	echo "Installing update!"
+	sudo /usr/local/bin/mpkg-install $LIBRARY/cache/update.mpack
+	EXITC=$?
+fi
+echo "Cleaning up..."
+sudo rm -r $LIBRARY/cache
+sudo mkdir $LIBRARY/cache
+echo -e "${GRN}Done.${NC}"
+exit $EXITC

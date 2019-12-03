@@ -1,0 +1,64 @@
+#!/bin/bash
+pkg=$1
+ROOTFS="/"
+LIBRARY="/usr/local/mpkglib"
+longarg="$1 $2 $3 $4 $5 $6 $7"
+
+RED='\033[0;31m'
+GRN='\033[0;32m'
+YEL='\033[0;33m'
+BLU='\033[0;34m'
+NC='\033[0m'
+
+if [[ -z $1 ]]; then
+	if [[ -z $(echo $longarg | grep "@@@@pkgsAreFromSelected") ]]; then
+		echo -e "${RED}Error: (35)${NC} No package specified!${NC}"
+		exit 35
+	fi
+elif [[ ! -d $LIBRARY/db/$1 ]]; then
+	echo -e "${RED}Error: ${NC}Package is not installed.${NC}"
+	exit 1
+else
+	if [[ $2 == "-y" ]] || [[ $2 == "--yes" ]]; then
+		echo "Locking library..."
+		touch $LIBRARY/lock
+		echo "Removing file connection from db..."
+		sudo rm $LIBRARY/db/$1/files
+		if [[ -f $LIBRARY/db/$1/userfiles ]]; then
+			sudo rm $LIBRARY/db/$1/userfiles
+		fi
+		echo "Adding unremovable flag..."
+		sudo touch $LIBRARY/db/$1/unremovable
+		echo -e "${GRN}Done.${NC}"
+		sudo rm $LIBRARY/lock
+		exit 0
+	else
+		echo -e "${YEL}If you block removal:${NC}"
+		echo -e "${YEL}Unable to reinstall the package${NC}"
+		echo -e "${YEL}Unable to upgrade the package${NC}"
+		echo -e "${YEL}Unable to remove the package${NC}"
+		echo -e "${BLU}This action is irrevokable. Are you sure you want to continue? y/n (MUST BE LOWER CASE)${NC}"
+		read flag
+		if [[ $flag == "y" ]] || [[ $flag == "Y" ]]; then
+			echo "Locking library..."
+			touch $LIBRARY/lock
+			echo "Removing file connection from db..."
+			if [[ ! -f $LIBRARY/db/$1/files ]]; then
+				echo -e "${YEL}WARNING: ${NC}Files connection not found."
+			else
+				sudo rm $LIBRARY/db/$1/files
+			fi
+			if [[ -f $LIBRARY/db/$1/userfiles ]]; then
+				sudo rm $LIBRARY/db/$1/userfiles
+			fi
+			echo "Adding unremovable flag..."
+			sudo touch $LIBRARY/db/$1/unremovable
+			echo -e "${GRN}Done.${NC}"
+			sudo rm $LIBRARY/lock
+			exit 0
+		else
+			echo -e "${RED}Aborted.${NC}"
+			exit 1
+		fi
+	fi
+fi

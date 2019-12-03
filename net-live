@@ -1,5 +1,5 @@
 #!/bin/bash
-ADDRESS="https://github.com/410-dev/Macintosh-Packager/releases/download/7.1.5/mpkg_7.1.5_darwin64.mpack"
+ADDRESS="https://github.com/410-dev/Macintosh-Packager/releases/download/7.1.4/mpkg_7.1.4_darwin64.mpack"
 MPKGLIVE="https://raw.githubusercontent.com/HTTP410GONE/MacintoshPackager/master/mpkg-live"
 NETINSTALL="https://github.com/410-dev/Macintosh-Packager/releases/download/Net1.3/net_1.3_duo.mpack"
 RED='\033[0;31m'

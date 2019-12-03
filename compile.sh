@@ -12,7 +12,7 @@ cd "$D"
 mkdir -p ./compiled
 for f in mpkg*; do
 	echo "Compiling: $f"
-	shc -f $f
+	shc -r -f $f
 	gcc "$f.x.c" -o ./compiled/$f
 	echo "Finished: $f"
 done

@@ -1,7 +1,7 @@
 #!/bin/bash
 ADDRESS="https://github.com/410-dev/Macintosh-Packager/releases/download/7.1.4/mpkg_7.1.4_darwin64.mpack"
 MPKGLIVE="https://raw.githubusercontent.com/HTTP410GONE/MacintoshPackager/master/mpkg-live"
-NETINSTALL="https://github.com/410-dev/Macintosh-Packager/releases/download/Net1.3/net_1.3_duo.mpack"
+NETINSTALL="https://github.com/410-dev/Macintosh-Packager/releases/download/Net1.3/net_1.3.mpack"
 RED='\033[0;31m'
 GRN='\033[0;32m'
 BLU='\033[0;34m'
@@ -10,7 +10,7 @@ echo "NETINSTALL-LIVE"
 echo "VERSION: 1.9"
 echo "LAST UPDATE: DEC.03.2019"
 echo "This will install: "
-echo "mpkg 7.1.5"
+echo "mpkg 7.1.4"
 echo "net 1.3"
 echo "Checking architecture..."
 if [[ -z $(uname -a | grep "Darwin") ]]; then

@@ -15,6 +15,7 @@ Added:
 - Supports author of the pacakge
 - Package info shower will tell dependencies and conflicts
 - Proper exit codes
+- Deep inspect option
 
  Modifications:
  - Fixed mpkg -c option error

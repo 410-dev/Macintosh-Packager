@@ -80,10 +80,13 @@ elif [[ $args == "--upgrade" ]]; then
 	sudo $BINARY/mpkg-upgrade
 	exit $?
 elif [[ $args == "--select" ]]; then
-	sudo $BINARY/mpkg-select $2 $3 $4 $5 $6 $7 $8 $9
+	sudo $BINARY/mpkg-select "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"
 	exit $?
 elif [[ $args == "fullmpkgerase" ]]; then
 	sudo $BINARY/mpkg-remove mpkg "@selfremove"
+	exit $?
+elif [[ $args == "--deep-inspect" ]]; then
+	sudo $BINARY/mpkg-deep-inspect "$2" "$3"
 	exit $?
 else
 	$LIBRARY/binary/mpkg-manual

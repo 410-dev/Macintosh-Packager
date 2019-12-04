@@ -1,0 +1,36 @@
+#!/bin/bash
+key=$1
+pkg=$2
+ROOTFS="/"
+LIBRARY="/usr/local/mpkglib"
+
+RED='\033[0;31m'
+GRN='\033[0;32m'
+YEL='\033[0;33m'
+BLU='\033[0;34m'
+NC='\033[0m'
+
+if [[ -z "$key" ]]; then
+	echo -e "${RED}Error: ${NC} No key specified!"
+	exit -1
+elif [[ -z "$pkg" ]]; then
+	echo -e "${RED}Error: (35)${NC} No package specified!${NC}"
+	exit 35
+fi
+if [[ -f $LIBRARY/db/"$pkg"/pkgname ]] && [[ -f $LIBRARY/db/"$pkg"/pkgid ]] && [[ -f $LIBRARY/db/"$pkg"/version ]]; then
+	echo "Package Info:"
+	echo "Name:" $(<$LIBRARY/db/"$pkg"/pkgname)
+	echo "ID:" $(<$LIBRARY/db/"$pkg"/pkgid)
+	echo "Version:" $(<$LIBRARY/db/"$pkg"/version)
+	if [[ -f $LIBRARY/db/"$pkg"/"$key" ]]; then
+		echo "VALUE OF \"$key\" KEY: "
+		echo "$(<$LIBRARY/db/"$pkg"/"$key")"
+	else
+		echo "Key \"$key\" does not exist."
+		exit -1
+	fi
+else
+	echo -e "${RED}Error: (36)${NC}Missing control info!"
+	exit 36
+fi
+exit 0

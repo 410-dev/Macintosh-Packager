@@ -37,7 +37,7 @@ else
 	curl -Ls "$RELEASE/$(<$LIBRARY/cache/latest)/mpkg_$(<$LIBRARY/cache/latest).mpack" -o $LIBRARY/cache/update.mpack
 	echo "Verifying update: update.mpack"
 	echo "Installing update!"
-	sudo /usr/local/bin/mpkg-install $LIBRARY/cache/update.mpack
+	sudo /usr/local/mpkglib/binary/mpkg-install $LIBRARY/cache/update.mpack
 	EXITC=$?
 fi
 echo "Cleaning up..."

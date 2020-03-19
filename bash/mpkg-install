@@ -60,7 +60,7 @@ function dependencyCheck() {
 			loopProgress=$(( $loopProgress + 1 ))
 			if [[ -z $(awk -v line=$loopProgress 'NR==line' $LIBRARY/temp/Info/depends) ]]; then
 				echo -e "${YEL}WARNING:${NC} Dependency list has empty line: " $(awk -v line=$loopProgress 'NR==line' $LIBRARY/temp/Info/depends) "${NC}"
-			elif [[ -z $(ls $LIBRARY/db | grep $(awk -v line=$loopProgress 'NR==line' $LIBRARY/temp/Info/depends)) ]]; then
+			elif [[ -d $LIBRARY/db/$(awk -v line=$loopProgress 'NR==line' $LIBRARY/temp/Info/depends) ]]; then
 				echo -e "${RED}Error:${NC} Dependency \""$(awk -v line=$loopProgress 'NR==line' $LIBRARY/temp/Info/depends)"\" is not installed.${NC}"
 				sudo rm $LIBRARY/lock
 				exit
